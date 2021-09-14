@@ -1,0 +1,8 @@
+import 'common/byte.grm' as b;
+import 'common/util.grm' as u;
+import 'verbalizers/word_unstructured.grm' as word;
+import 'verbalizers/fraction_unstructured.grm' as fraction;
+
+types = (word.WORD_UNSTRUCTURED | fraction.FRACTION_UNSTRUCTURED);
+
+export VERBALIZER = Optimize[(types+)];

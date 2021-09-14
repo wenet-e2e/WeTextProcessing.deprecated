@@ -1,0 +1,43 @@
+import 'common/byte.grm' as b;
+import 'common/util.grm' as u;
+import 'taggers/int.grm' as int;
+import 'taggers/float.grm' as float;
+import 'taggers/time.grm' as time;
+import 'taggers/measure.grm' as measure;
+import 'taggers/telephone.grm' as telephone;
+import 'taggers/electronic.grm' as electronic;
+import 'taggers/whitelist.grm' as whitelist;
+import 'taggers/fraction.grm' as frac;
+import 'taggers/date.grm' as date;
+import 'taggers/percentage.grm' as percentage;
+import 'taggers/fraction_structured.grm' as frac_structured;
+import 'taggers/word_structured.grm' as word_structured;
+
+
+pre_processor = (
+  Optimize[
+    telephone.TELEPHONE
+    @ electronic.ELECTRONIC
+    @ time.TIME
+    @ date.DATE
+    @ percentage.PERCENTAGE
+    @ frac.FRACTION
+    @ float.FLOAT
+    @ measure.MEASURE
+    @ whitelist.WHITELIST
+  ]
+);
+
+classifier = (
+  CDRewrite[
+    Optimize[
+      (frac_structured.FRACTION_STRUCTURED <-1000>)
+      | (word_structured.WORD_STRUCTURED <0>)
+    ],
+    "",
+    "",
+    b.kBytes*
+  ]
+);
+
+export TAGGER = Optimize[(pre_processor @ (classifier+))];

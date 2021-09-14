@@ -1,0 +1,12 @@
+import 'common/byte.grm' as b;
+import 'common/util.grm' as u;
+
+graph_word = (
+  (u.delete_space)
+  (u.Delete["token { word { name: \""])
+  (b.kNotSpace+)
+  (u.Delete["\" } }"])
+  (u.delete_space)
+);
+
+export WORD_UNSTRUCTURED = Optimize[graph_word @ CDRewrite[("\u00A0":" "), "", "", b.kBytes*]];

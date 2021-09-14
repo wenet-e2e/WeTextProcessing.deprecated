@@ -1,0 +1,11 @@
+import 'common/byte.grm' as b;
+import 'common/util.grm' as u;
+import 'taggers/int.grm' as int;
+
+date_day = (int.graph_1_to_99 ("日"|"号"));
+date_month_day = (int.graph_1_to_99 "月" date_day);
+date_year_month_day = (((int.graph_0_to_9){2, 4} | int.graph_int<10>) "年" date_month_day);
+
+graph_date = (date_year_month_day | date_month_day | date_day);
+
+export DATE = CDRewrite[graph_date, "", "", b.kBytes*];

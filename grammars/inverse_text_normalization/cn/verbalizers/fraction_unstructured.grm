@@ -1,0 +1,21 @@
+import 'common/byte.grm' as b;
+import 'common/util.grm' as u;
+
+graph_numerator = (b.kDigit)+;
+
+graph_denominator = (b.kDigit)+;
+
+graph_fraction = (
+  (u.delete_space)
+  (u.Delete["token { fraction { numerator: \""])
+  (graph_numerator)
+  (u.Delete["\""])
+  (u.Delete[" frac: \"/\" "])
+  (u.Insert["/"])
+  (u.Delete["denominator: \""])
+  (graph_denominator)
+  (u.Delete["\" } }"])
+  (u.delete_space)
+);
+
+export FRACTION_UNSTRUCTURED = Optimize[graph_fraction];
