@@ -6,7 +6,7 @@ graph_numerator = b.kDigit (b.kDigit<-1>)*;
 graph_denominator = b.kDigit (b.kDigit<-1>)*;
 
 # Building structured output
-# i.e. 13分之12 ==> token { fraction { denominator: "13" frac: "/" numerator: "12" } } 
+# i.e. 13分之12 ==> token { fraction { denominator: "13" frac: "/" numerator: "12" } }
 graph_fraction = (
   (u.Insert["token { fraction { denominator: \""])
   (graph_denominator<-0.5>)
