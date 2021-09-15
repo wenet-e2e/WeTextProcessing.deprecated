@@ -1,6 +1,9 @@
 import 'common/byte.grm' as b;
 import 'common/util.grm' as u;
 
+# The reason why I divided 0-99 into different parts is that
+# some parts can be easily imported by other *.grm, so as to
+# avoid duplication of definitions
 export graph_0 = ("零":"0");
 export graph_1 = (("一":"1") | ("幺":"1"));
 export graph_2 = (("二":"2") | ("两":"2"));

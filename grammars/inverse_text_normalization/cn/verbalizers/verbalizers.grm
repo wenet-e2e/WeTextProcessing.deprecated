@@ -3,6 +3,7 @@ import 'common/util.grm' as u;
 import 'verbalizers/word_unstructured.grm' as word;
 import 'verbalizers/fraction_unstructured.grm' as fraction;
 
+# stage-2: verbalization
 types = (word.WORD_UNSTRUCTURED | fraction.FRACTION_UNSTRUCTURED);
 
 export VERBALIZER = Optimize[(types+)];

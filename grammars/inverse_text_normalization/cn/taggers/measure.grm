@@ -19,7 +19,8 @@ graph_float_or_int_unit = (
   | ("升":"L")
 );
 
-# i.e. "三千米" ==> "3km"
+# i.e. "三点五千米" ==> "3.5km"  # 千米 is a float-or-int unit
+#      "一百人"     ==> "100人"  # 人   is a int-only unit
 graph_measure = (
   (((float.graph_float<-4>) | int.graph_int) graph_float_or_int_unit)
   | (int.graph_int graph_int_unit)
