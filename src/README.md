@@ -12,7 +12,7 @@ cd ../grammars/inverse_text_normalization/cn && make all -j2
 
 ```sh
 # In Current Directory (wenet-text-processing/src)
-cat ../grammars/inverse_text_normalization/cn/testcase_cn.txt | ./text_process_main ../grammars/inverse_text_normalization/cn/build/TAGGER.fst ../grammars/inverse_text_normalization/cn/build/VERBALIZER.fst 1
+cat ../grammars/inverse_text_normalization/cn/testcase_cn.txt | ./build/text_process_main ../grammars/inverse_text_normalization/cn/build/TAGGER.fst ../grammars/inverse_text_normalization/cn/build/VERBALIZER.fst 1
 ```
 
 

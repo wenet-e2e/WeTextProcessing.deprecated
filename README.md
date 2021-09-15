@@ -1,4 +1,4 @@
-# wenet-text-processing
+# wenet-text-processing (WIP)
 
 TODO:
 
