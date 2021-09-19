@@ -87,10 +87,25 @@ std::string TextProcessor::ProcessInput(const std::string& input,
 
 std::string TextProcessor::ParseAndReorder(const std::string& structured_text) {
   if (structured_text.empty()) return structured_text;
-  // parse and reorder structured_text
+  // i.e. structured_text =
+  //          token { fraction { denominator: "13" frac: "/" numerator: "12" } }
+  //      OR
+  //          token { word { name: "哈哈" } }
   std::stringstream ss(structured_text);
   std::vector<Token> tokens;
   std::string tmp, open_brace, close_brace, key, value;
+  // parse and reorder structured_text
+  // i.e. Token.token_name = fraction
+  //      Token.key_value_map =
+  //          {{denominator:, "13"}, {frac:, "/"}, {numerator:, "12"}}
+  //      Reverse(Token.key_valu_map) =
+  //          {{numerator:, "12"}, {frac:, "/"}, {denominator:, "13"}}
+  //     OR
+  //      Token.token_name = word
+  //      Token.key_value_map =
+  //          {{name:, "哈哈"}}
+  //      Reverse(Token.key_value_map) =
+  //          {{name:, "哈哈"}}
   while (ss >> tmp) {
     assert(tmp == "token");
     Token t;
@@ -106,6 +121,10 @@ std::string TextProcessor::ParseAndReorder(const std::string& structured_text) {
     tokens.emplace_back(t);
   }
   // reconstruct reordered_text
+  // i.e. reordered_text =
+  //          token { fraction { numerator: "12" frac: "/" denominator: "13" } }
+  //      OR
+  //          token { word { name: "哈哈" } }
   std::string reordered_text;
   for (size_t i = 0; i < tokens.size(); ++i) {
     if (i != 0) reordered_text += " ";
