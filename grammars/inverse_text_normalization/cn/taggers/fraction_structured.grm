@@ -1,0 +1,21 @@
+import 'common/byte.grm' as b;
+import 'common/util.grm' as u;
+
+graph_numerator = b.kDigit (b.kDigit<-1>)*;
+
+graph_denominator = b.kDigit (b.kDigit<-1>)*;
+
+# Building structured output
+# i.e. 13分之12 ==> token { fraction { denominator: "13" frac: "/" numerator: "12" } }
+graph_fraction = (
+  (u.Insert["token { fraction { denominator: \""])
+  (graph_denominator<-0.5>)
+  (u.Insert["\""])
+  (u.Delete["分之"])
+  (u.Insert[" frac: \"/\" "])
+  (u.Insert["numerator: \""])
+  (graph_numerator<-0.5>)
+  (u.Insert["\" } } "])
+);
+
+export FRACTION_STRUCTURED = Optimize[graph_fraction];
