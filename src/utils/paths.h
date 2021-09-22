@@ -17,8 +17,8 @@
 // For general information on the Pynini grammar compilation library, see
 // pynini.opengrm.org.
 
-#ifndef SRC_UTILS_PATHS_H_
-#define SRC_UTILS_PATHS_H_
+#ifndef UTILS_PATHS_H_
+#define UTILS_PATHS_H_
 
 // An iterative definition of all paths of an acyclic automaton.
 //
@@ -340,5 +340,5 @@ string StringPathIterator<Arc>::OString() {
 
 }  // namespace fst
 
-#endif  // SRC_UTILS_PATHS_H_
+#endif  // UTILS_PATHS_H_
 

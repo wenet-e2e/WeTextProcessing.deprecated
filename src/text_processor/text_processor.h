@@ -1,7 +1,7 @@
 // Copyright [2021-09-13] <sxc19@mails.tsinghua.edu.cn, Xingchen Song>
 
-#ifndef SRC_TEXT_PROCESSOR_TEXT_PROCESSOR_H_
-#define SRC_TEXT_PROCESSOR_TEXT_PROCESSOR_H_
+#ifndef TEXT_PROCESSOR_TEXT_PROCESSOR_H_
+#define TEXT_PROCESSOR_TEXT_PROCESSOR_H_
 
 #include <utility>
 #include <string>
@@ -38,4 +38,4 @@ class TextProcessor {
 
 }  // namespace wenet
 
-#endif  // SRC_TEXT_PROCESSOR_TEXT_PROCESSOR_H_
+#endif  // TEXT_PROCESSOR_TEXT_PROCESSOR_H_
