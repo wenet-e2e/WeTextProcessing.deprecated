@@ -1,0 +1,93 @@
+import 'common/byte.grm' as b;
+import 'common/util.grm' as u;
+import 'taggers/int.grm' as int;
+
+# Comment:
+#   How to read web address in English ?
+#   See: https://forum.wordreference.com/threads/how-to-read-web-address-in-english.3431793/
+
+graph_alpha_and_num = int.graph_0_to_9 | b.kAlpha;
+graph_symbols = Invert[StringFile['data/electronic/symbols.tsv']];
+
+# Example:
+#   a one b c d ==> a1bcd
+graph_at_least_one_alnum = (
+  graph_alpha_and_num
+  (u.Delete[" "] graph_alpha_and_num)*
+);
+
+# Example:
+#   com slash h o m e ==> com/home
+graph_at_least_one_alnum_and_symbol = (
+  (graph_alpha_and_num | graph_symbols)
+  (u.Delete[" "] (graph_alpha_and_num | graph_symbols))*
+);
+
+# Example:
+#   n vidia ==> nvidia
+graph_server_name = StringFile['data/electronic/server_name.tsv'];
+
+# Comment:
+#   This is an acceptor.
+# Example:
+#   com ==> com
+graph_domain = StringFile['data/electronic/domain.tsv'];
+
+graph_username = (
+  graph_alpha_and_num
+  (u.Delete[" "] (graph_alpha_and_num | graph_symbols))*
+);
+
+# Example:
+#   c d f one at a b c dot e d u ==> cdf1@abc.edu
+graph_email = (
+  graph_username
+  u.Delete[" "] ("at":"@")
+  u.Delete[" "] (graph_server_name | graph_at_least_one_alnum)
+  u.Delete[" "] ("dot":".")
+  u.Delete[" "] (graph_domain | graph_at_least_one_alnum)
+);
+
+# Example:
+#   c d f one at a b c dot e d u ==> electronic { email: "cdf1@abc.edu" }
+graph_email_structured = (
+  u.Insert["electronic { email: \""]
+  graph_email
+  u.Insert["\" }"]
+);
+
+# Example:
+#   h t t p colon slash slash w w w dot baidu dot com ==> http://www.baidu.com
+graph_protocal = (
+  (
+    (
+      (("h t t p":"http") | ("h t t p s":"https"))
+      (" colon slash slash ":"://")
+    ) | ("":"" <0.1>)
+  )
+  (("w w w":"www") | ("www"))
+  u.Delete[" "] ("dot":".")
+  u.Delete[" "] (graph_at_least_one_alnum_and_symbol | b.kAlpha+)
+  ((
+    u.Delete[" "]
+    graph_symbols
+    u.Delete[" "]
+    (graph_domain | graph_at_least_one_alnum_and_symbol | b.kAlpha+)
+  )+)
+);
+
+# Example:
+#   h t t p colon slash slash w w w dot baidu dot com ==> electronic { protocal: "http://www.baidu.com" }
+graph_protocal_structured = (
+  u.Insert["electronic { protocal: \""]
+  graph_protocal
+  u.Insert["\" }"]
+);
+
+export graph_electronic = Optimize[graph_email | graph_protocal];
+export graph_electronic_structured = Optimize[graph_email_structured | graph_protocal_structured];
+
+# Comment:
+#   This is making transducer significantly slower and larger, so only use when
+#   you want to rewrites portions of the input in a context-dependent fashion, otherwise leave it.
+# export ELECTRONIC = CDRewrite[graph_electronic, (" " | "[BOS]"), (" " | "[EOS]"), b.kBytes*];

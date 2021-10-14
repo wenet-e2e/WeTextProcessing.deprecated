@@ -1,0 +1,8 @@
+import 'common/byte.grm' as b;
+import 'common/util.grm' as u;
+
+export graph_word_structured = Optimize[
+  u.Insert["word { content: \""]
+  (b.kAlpha+)
+  u.Insert["\" }"]
+];

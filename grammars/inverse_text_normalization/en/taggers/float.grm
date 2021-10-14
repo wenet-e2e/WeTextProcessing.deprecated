@@ -1,0 +1,38 @@
+import 'common/byte.grm' as b;
+import 'common/util.grm' as u;
+import 'taggers/int.grm' as int;
+
+# Comment:
+#   one number or no number before the decimal point
+graph_numbers_before_the_decimal_point = int.graph_cardinal;
+
+# Comment:
+#  decimals are indicated by "dot" or "point"
+graph_decimal_point = ("point":".") | ("dot":".");
+
+# Comment:
+#   at least one digit after the decimal point
+graph_numbers_after_the_decimal_point = (int.graph_0_to_9_plus_o (((u.delete_space int.graph_0_to_9_plus_o)<-1.0>)*)) | int.graph_0_to_99;
+
+# Example:
+#   twelve point five o o six ==> 12.5006
+export graph_float = Optimize[
+  u.optional_negative_graph_en
+  u.delete_space graph_numbers_before_the_decimal_point
+  u.delete_space graph_decimal_point
+  u.delete_space graph_numbers_after_the_decimal_point
+  ((" " int.graph_lions) | ("":"" <0.1>))
+];
+
+# Example:
+#   twelve point five o o six ==> token { float { content: "12.5006" } }
+export graph_float_structured = Optimize[
+  u.Insert["float { content: \""]
+  graph_float
+  u.Insert["\" }"]
+];
+
+# Comment:
+#   This is making transducer significantly slower and larger, so only use when
+#   you want to rewrites portions of the input in a context-dependent fashion, otherwise leave it.
+# export FLOAT = CDRewrite[graph_float, (" " | "[BOS]"), (" " | "[EOS]"), b.kBytes*];

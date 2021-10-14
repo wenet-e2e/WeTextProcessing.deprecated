@@ -1,0 +1,124 @@
+import 'common/byte.grm' as b;
+import 'common/util.grm' as u;
+import 'taggers/int.grm' as int;
+import 'taggers/float.grm' as float;
+
+# Example:
+#   dollar ==> $
+graph_unit_singular = Invert[StringFile['data/currency/singular.tsv']];
+
+# Example:
+#   dollars ==> $
+graph_unit_plural = StringFile['data/currency/plural.tsv'];
+
+graph_cent = ("cent":"$") | ("cents":"$");
+graph_penny = ("penny":"£") | ("pence":"£");
+graph_paisa = ("paisa":"rs") | ("paise":"rs") | ("pice":"rs") | ("paisas":"rs");
+
+# Example:
+#   six         ==> 6  ==> 06
+#   ninety nine ==> 99 ==> 99
+graph_add_leading_zero_to_double_digit = (b.kDigit b.kDigit) | (u.Insert["0"] b.kDigit);
+graph_00_to_99 = int.graph_0_to_99 @ graph_add_leading_zero_to_double_digit;
+
+graph_cent_after_dollar = (
+  u.delete_space
+  ((u.Delete["and"] u.delete_space) | ("":"" <1.1>))
+  u.Insert[" fractional_part: \"."]
+  graph_00_to_99
+  u.Insert["\""]
+  u.delete_space
+  (
+    u.Delete["cents"]
+    | u.Delete["cent"]
+    | ("":"" <0.1>)
+  )
+);
+
+graph_penny_after_pound = (
+  u.delete_space
+  ((u.Delete["and"] u.delete_space) | ("":"" <1.1>))
+  u.Insert[" fractional_part: \"."]
+  graph_00_to_99
+  u.Insert["\""]
+  u.delete_space
+  (
+    u.Delete["penny"]
+    | u.Delete["pence"]
+    | ("":"" <0.1>)
+  )
+);
+
+graph_paisa_after_rupee = (
+  u.delete_space
+  ((u.Delete["and"] u.delete_space) | ("":"" <1.1>))
+  u.Insert[" fractional_part: \"."]
+  graph_00_to_99
+  u.Insert["\""]
+  u.delete_space
+  (
+    u.Delete["paisas"]
+    | u.Delete["paise"]
+    | u.Delete["pice"]
+    | u.Delete["paisa"]
+    | ("":"" <0.1>)
+  )
+);
+
+# Example:
+#   two dollars             ==> interger_part: "2" currency: "$" fractional_part: ""
+#   two dollars three cents ==> interger_part: "2" currency: "$" fractional_part: ".03"
+#   two pounds              ==> interger_part: "2" currency: "£" fractional_part: ""
+#   two pounds twenty pence ==> interger_part: "2" currency: "£" fractional_part: ".20"
+#   two rupees              ==> interger_part: "2" currency: "rs" fractional_part: ""
+#   two rupees three paise  ==> interger_part: "2" currency: "rs" fractional_part: ".03"
+graph_money_structured_int = (
+  u.Insert["interger_part: \""]
+  u.optional_negative_graph_en u.delete_space int.graph_cardinal
+  u.Insert["\" currency: \""]
+  u.delete_space (graph_unit_singular | graph_unit_plural)
+  u.Insert["\""]
+  (
+    graph_cent_after_dollar
+    | graph_penny_after_pound
+    | graph_paisa_after_rupee
+    | (u.Insert[" fractional_part: \"\""] <0.1>)
+  )
+);
+
+# Example:
+#   two point six dollars ==> interger_part: "" fractional_part: "2.6" currency: "$"
+graph_money_structured_float = (
+  u.Insert["interger_part: \"\" fractional_part: \""]
+  float.graph_float
+  u.Insert["\" currency: \""]
+  u.delete_space (graph_unit_singular | graph_unit_plural)
+  u.Insert["\""]
+);
+
+# Example:
+#   two cents        ==> interger_part: "0" fractional_part:".02" currency: "$"
+#   twenty two cents ==> interger_part: "0" fractional_part:".22" currency: "$"
+graph_money_structured_special = (
+  u.Insert["interger_part: \"0\" fractional_part: \"."]
+  graph_00_to_99
+  u.Insert["\" currency: \""]
+  u.delete_space (graph_cent | graph_penny | graph_paisa)
+  u.Insert["\""]
+);
+
+# Example:
+#   two dollars             ==> money { interger_part: "2" currency: "$" fractional_part: "" }
+#   two dollars three cents ==> money { interger_part: "2" currency: "$" fractional_part: ".03" }
+#   two pounds              ==> money { interger_part: "2" currency: "£" fractional_part: "" }
+#   two pounds twenty pence ==> money { interger_part: "2" currency: "£" fractional_part: ".20" }
+#   two rupees              ==> money { interger_part: "2" currency: "rs" fractional_part: "" }
+#   two rupees three paise  ==> money { interger_part: "2" currency: "rs" fractional_part: ".03" }
+#   two point six dollars   ==> money { interger_part: "" fractional_part: "2.6" currency: "$" }
+#   two cents               ==> money { interger_part: "0" fractional_part:".02" currency: "$" }
+#   twenty two cents        ==> money { interger_part: "0" fractional_part:".22" currency: "$" }
+export graph_money_structured = Optimize[
+  u.Insert["money { "]
+  (graph_money_structured_int | graph_money_structured_float | graph_money_structured_special)
+  u.Insert[" }"]
+];
