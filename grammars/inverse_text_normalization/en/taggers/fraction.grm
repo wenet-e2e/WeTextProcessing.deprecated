@@ -1,0 +1,61 @@
+import 'common/byte.grm' as b;
+import 'common/util.grm' as u;
+import 'taggers/int.grm' as int;
+
+# Comment:
+#   How to pronounce & write fractions in English ?
+#   See https://www.myhappyenglish.com/free-english-lesson/2014/04/13/how-to-pronounce-write-fractions-in-english/
+
+# Example:
+#   sixths     ==> 6
+#   sixteenths ==> 16
+#   sixtieths  ==> 60
+graph_ordinal_digit_plus_s = StringFile['data/fraction/digit.tsv'];
+graph_ordinal_teen_plus_s = StringFile['data/fraction/teen.tsv'];
+graph_ordinal_ties_plus_s = StringFile['data/fraction/ties.tsv'];
+
+# Example:
+#   a half ==> 1/2
+graph_fraction_special = StringFile['data/fraction/special.tsv'];
+
+# Example:
+#   a sixth   ==> 1/6
+#   one sixth ==> 1/6
+graph_fraction_singular = (
+  (("a":"1") | ("one":"1"))
+  u.delete_space u.Insert["/"]
+  (int.graph_ordinal_to_cardinal @ int.graph_cardinal)
+);
+
+# Example:
+#   two sixths        ==> 2/6
+#   sixteen sixtieths ==> 16/60
+graph_fraction_plural = (
+  int.graph_cardinal
+  u.delete_space u.Insert["/"]
+  (
+    graph_ordinal_digit_plus_s
+    | graph_ordinal_teen_plus_s
+    | graph_ordinal_ties_plus_s
+    | ("hundredths":"100") | ("thousandths":"1000")
+  )
+);
+
+export graph_fraction = Optimize[
+  u.optional_negative_graph_en u.delete_space
+  (graph_fraction_special | graph_fraction_singular | graph_fraction_plural)
+];
+
+# Example:
+#   two sixths        ==> fraction { content: "2/6" }
+#   sixteen sixtieths ==> fraction { content: "16/60" }
+export graph_fraction_structured = Optimize[
+  u.Insert["fraction { content: \""]
+  graph_fraction
+  u.Insert["\" }"]
+];
+
+# Comment:
+#   This is making transducer significantly slower and larger, so only use when
+#   you want to rewrites portions of the input in a context-dependent fashion, otherwise leave it.
+# export FRACTION = CDRewrite[graph_fraction, (" " | "[BOS]"), (" " | "[EOS]"), b.kBytes*];

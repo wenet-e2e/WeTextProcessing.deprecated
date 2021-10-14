@@ -1,0 +1,43 @@
+import 'common/byte.grm' as b;
+import 'common/util.grm' as u;
+import 'taggers/int.grm' as int;
+import 'taggers/float.grm' as float;
+
+# Example:
+#   kilometer ==> km
+graph_unit_singular = StringFile['data/measurements/singular.tsv'];
+
+# Example:
+#   kilometers ==> km
+graph_unit_plural = StringFile['data/measurements/plural.tsv'];
+
+graph_misc = u.Insert["/"] u.Delete["per"] u.delete_space graph_unit_singular;
+
+graph_unit = (
+  graph_unit_singular
+  | graph_unit_plural
+  | graph_misc
+  | (
+      (graph_unit_plural | graph_unit_singular)
+      u.delete_space graph_misc
+    )
+);
+
+# Example:
+#   two kilometers          ==> 2km
+#   two kilometers per hour ==> 2km/h
+export graph_measure = Optimize[(float.graph_float | int.graph_int) u.delete_space graph_unit];
+
+# Example:
+#   two kilometers          ==> measure { content: "2km" }
+#   two kilometers per hour ==> measure { content: "2km/h" }
+export graph_measure_structured = Optimize[
+  u.Insert["measure { content: \""]
+  graph_measure
+  u.Insert["\" }"]
+];
+
+# Comment:
+#   This is making transducer significantly slower and larger, so only use when
+#   you want to rewrites portions of the input in a context-dependent fashion, otherwise leave it.
+# export MEASURE = CDRewrite[graph_measure, (" " | "[BOS]"), (" " | "[EOS]"), b.kBytes*];

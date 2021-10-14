@@ -1,0 +1,49 @@
+import 'common/byte.grm' as b;
+import 'common/util.grm' as u;
+import 'taggers/int.grm' as int;
+import 'taggers/float.grm' as float;
+import 'taggers/date.grm' as date;
+import 'taggers/measure.grm' as measure;
+import 'taggers/money.grm' as money;
+import 'taggers/telephone.grm' as telephone;
+import 'taggers/time.grm' as time;
+import 'taggers/punctuation.grm' as punc;
+import 'taggers/word.grm' as word;
+import 'taggers/electronic.grm' as electronic;
+import 'taggers/whitelist.grm' as whitelist;
+import 'taggers/fraction.grm' as fraction;
+
+graph_classifier = (
+  (whitelist.graph_whitelist_structured <1.01>)
+  | (fraction.graph_fraction_structured <1.09>)
+  | (time.graph_time_structured <1.1>)
+  | (date.graph_date_structured <1.09>)
+  | (float.graph_float_structured <1.1>)
+  | (int.graph_int_structured <1.1>)
+  | (measure.graph_measure_structured <1.1>)
+  | (money.graph_money_structured <1.1>)
+  | (telephone.graph_telephone_structured <1.1>)
+  | (electronic.graph_electronic_structured <1.1>)
+  | (word.graph_word_structured <1000>)
+);
+
+punct = (
+  u.Insert["tokens { "]
+  (punc.graph_punc_structured <1.1>)
+  u.Insert[" }"]
+);
+
+token = (
+  u.Insert["tokens { "]
+  graph_classifier
+  u.Insert[" }"]
+);
+
+graph_token_plus_punc = (punct u.delete_space u.Insert[" "])* token (u.Insert[" "] u.delete_space punct)*;
+
+export TAGGER = Optimize[
+  u.delete_space
+  graph_token_plus_punc
+  (u.Insert[" "] u.delete_space graph_token_plus_punc)*
+  u.delete_space
+];

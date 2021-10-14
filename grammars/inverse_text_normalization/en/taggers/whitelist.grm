@@ -1,0 +1,15 @@
+import 'common/byte.grm' as b;
+import 'common/util.grm' as u;
+
+# Comment:
+#   Compile whitelist.gram with higher priority to avoid
+#   int.grm converting `at first` to `at 1st`
+# Example:
+#   at first ==> at first
+graph_whitelist = Invert[StringFile['data/whitelist.tsv']];
+
+export graph_whitelist_structured = Optimize[
+  u.Insert["whitelist { content: \""]
+  graph_whitelist
+  u.Insert["\" }"]
+];
