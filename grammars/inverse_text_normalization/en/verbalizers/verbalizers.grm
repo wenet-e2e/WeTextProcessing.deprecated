@@ -1,0 +1,22 @@
+import 'common/byte.grm' as b;
+import 'common/util.grm' as u;
+import 'verbalizers/time.grm' as time;
+import 'verbalizers/date.grm' as date;
+import 'verbalizers/money.grm' as money;
+import 'verbalizers/others.grm' as others;
+
+graph_token_unstructured = (
+  u.Delete["token { "]
+  (
+    time.graph_time_unstructured
+    | date.graph_date_unstructured
+    | money.graph_money_unstructured
+    | others.graph_other_token_unstructured
+  )
+  u.Delete[" }"]
+);
+
+export VERBALIZER = Optimize[
+  graph_token_unstructured
+  (" " graph_token_unstructured)*
+];
