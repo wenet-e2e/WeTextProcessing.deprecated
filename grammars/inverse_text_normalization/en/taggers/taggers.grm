@@ -28,13 +28,13 @@ graph_classifier = (
 );
 
 punct = (
-  u.Insert["tokens { "]
+  u.Insert["token { "]
   (punc.graph_punc_structured <1.1>)
   u.Insert[" }"]
 );
 
 token = (
-  u.Insert["tokens { "]
+  u.Insert["token { "]
   graph_classifier
   u.Insert[" }"]
 );
