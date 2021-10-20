@@ -1,0 +1,22 @@
+import 'common/byte.grm' as b;
+import 'common/util.grm' as u;
+
+graph_other_token_name = "word" | "int" | "float" | "punc" | "fraction" | "measure" | "electronic" | "telephone" | "whitelist";
+
+graph_char = (b.kGraph - "\"") | "m³" | "m²" | "μ" | "£" | "€" | "₩" | "¥" | b.kSpace;
+
+# Example:
+#   word { content: "hah" }               ==> hah
+#   int { content: "12" }                 ==> 12
+#   float { content: "12.2" }             ==> 12.2
+#   punc { content: "," }                 ==> ,
+#   fraction { content: "1/2" }           ==> 1/2
+#   measure { content: "12m" }            ==> 12m
+#   electronic { content: "aaa@bbb.com" } ==> aaa@bbb.com
+#   telephone { content: "123-456-789" }  ==> 123-456-789
+export graph_other_token_unstructured = Optimize[
+  (graph_other_token_name:"")
+  u.Delete[" { content: \""]
+  graph_char+
+  u.Delete["\" }"]
+];

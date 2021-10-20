@@ -57,12 +57,35 @@ taggers/float.far: taggers/float.grm common/byte.far common/util.far taggers/int
 taggers/int.far: taggers/int.grm common/byte.far common/util.far
 	thraxcompiler --save_symbols --input_grammar=$< --output_far=$@
 
+# verbalizer
+
+build/extract_verbalizerfst: build verbalizers/verbalizers.far
+	farextract --filename_suffix=".fst" --filename_prefix="build/" verbalizers/verbalizers.far
+	touch build/extract_verbalizerfst
+
+verbalizers/verbalizers.far: verbalizers/verbalizers.grm verbalizers/date.far verbalizers/money.far verbalizers/others.far verbalizers/time.far common/byte.far common/util.far
+	thraxcompiler --save_symbols --input_grammar=$< --output_far=$@
+
+verbalizers/date.far: verbalizers/date.grm common/byte.far common/util.far
+	thraxcompiler --save_symbols --input_grammar=$< --output_far=$@
+
+verbalizers/money.far: verbalizers/money.grm common/byte.far common/util.far
+	thraxcompiler --save_symbols --input_grammar=$< --output_far=$@
+
+verbalizers/time.far: verbalizers/time.grm common/byte.far common/util.far
+	thraxcompiler --save_symbols --input_grammar=$< --output_far=$@
+
+verbalizers/others.far: verbalizers/others.grm common/byte.far common/util.far
+	thraxcompiler --save_symbols --input_grammar=$< --output_far=$@
+
+# utils
+
 move_far_to_build_dir: build
 	mv common/*.far build
 	mv taggers/*.far build
 	mv verbalizers/*.far build
 
-all: build/extract_taggerfst
+all: build/extract_taggerfst build/extract_verbalizerfst
 
 .PHONY: clean move_far_to_build_dir
 

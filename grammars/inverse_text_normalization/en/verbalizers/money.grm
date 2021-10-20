@@ -1,0 +1,25 @@
+import 'common/byte.grm' as b;
+import 'common/util.grm' as u;
+
+# Comment:
+#   This is an acceptor
+# Example:
+#   $ ==> $
+graph_unit = Project[StringFile['data/currency/singular.tsv'], 'input'];
+
+# Example:
+#   money { currency: "$" interger_part: "" fractional_part: "3.23" } ==> $3.23
+export graph_money_unstructured = Optimize[
+  u.Delete["money { currency: \""]
+  graph_unit
+  u.Delete["\" interger_part: \""]
+  b.kDigit*
+  u.Delete["\" fractional_part: \""]
+  (
+    (
+      b.kDigit* "."
+      b.kDigit+ (("" <0.1>) | (" " b.kAlpha+))
+    ) | ("" <0.1>)
+  )
+  u.Delete["\" }"]
+];
