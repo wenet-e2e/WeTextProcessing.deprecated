@@ -51,7 +51,7 @@ graph_email = (
 # Example:
 #   c d f one at a b c dot e d u ==> electronic { email: "cdf1@abc.edu" }
 graph_email_structured = (
-  u.Insert["electronic { email: \""]
+  u.Insert["electronic { content: \""]
   graph_email
   u.Insert["\" }"]
 );
@@ -79,7 +79,7 @@ graph_protocal = (
 # Example:
 #   h t t p colon slash slash w w w dot baidu dot com ==> electronic { protocal: "http://www.baidu.com" }
 graph_protocal_structured = (
-  u.Insert["electronic { protocal: \""]
+  u.Insert["electronic { content: \""]
   graph_protocal
   u.Insert["\" }"]
 );

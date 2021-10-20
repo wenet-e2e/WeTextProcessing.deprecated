@@ -46,9 +46,9 @@ graph_hm_structured = (
   graph_hour
   u.Insert["\" minute: \":"]
   u.delete_space graph_minute
-  u.Insert["\" suffix:\""]
+  u.Insert["\" suffix: \""]
   (("":"" <0.1>) | (u.delete_space graph_time_suffix))
-  u.Insert["\" zone:\""]
+  u.Insert["\" zone: \""]
   (("":"" <0.1>) | (u.delete_space graph_time_zone))
   u.Insert["\""]
 );
@@ -67,9 +67,9 @@ graph_mh_structured = (
   u.delete_space u.Delete["past"]
   u.Insert["\" hour: \""]
   u.delete_space graph_hour
-  u.Insert["\" suffix:\""]
+  u.Insert["\" suffix: \""]
   (("":"" <0.1>) | (u.delete_space graph_time_suffix))
-  u.Insert["\" zone:\""]
+  u.Insert["\" zone: \""]
   (("":"" <0.1>) | (u.delete_space graph_time_zone))
   u.Insert["\""]
 );
@@ -83,9 +83,9 @@ graph_quarter_structured = (
   u.delete_space (u.Delete["to"] | u.Delete["till"])
   u.Insert["\" hour: \""]
   u.delete_space graph_time_to
-  u.Insert["\" suffix:\""]
+  u.Insert["\" suffix: \""]
   (("":"" <0.1>) | (u.delete_space graph_time_suffix))
-  u.Insert["\" zone:\""]
+  u.Insert["\" zone: \""]
   (("":"" <0.1>) | (u.delete_space graph_time_zone))
   u.Insert["\""]
 );
@@ -95,9 +95,9 @@ graph_quarter_structured = (
 graph_h_structured = (
   u.Insert["hour: \""]
   graph_hour
-  u.Insert["\" minute: \":00\" suffix:\""]
+  u.Insert["\" minute: \":00\" suffix: \""]
   u.delete_space graph_time_suffix
-  u.Insert["\" zone:\""]
+  u.Insert["\" zone: \""]
   (("":"" <0.1>) | (u.delete_space graph_time_zone))
   u.Insert["\""]
 );
