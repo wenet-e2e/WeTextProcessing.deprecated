@@ -157,7 +157,7 @@ bool TextProcessor::ParseAndReorder(const std::string& tagged_text,
   //          {{name:, "哈哈"}}
   while (ss >> tmp) {
     // stage-1.1 parse/separate tagged_text using spaces
-    assert(tmp == "token");
+    if (tmp != "token") return false;
     Token t;
     ss >> open_brace;  // parse '{'
     ss >> t.token_name;
@@ -165,7 +165,7 @@ bool TextProcessor::ParseAndReorder(const std::string& tagged_text,
     while (ss >> key && key != "}") {
       // parse value
       ss >> value;
-      assert(value[0] == '"');
+      if (value[0] != '"') return false;
       // value may contain spaces, i.e., "2.3 millions"
       if (value[value.size() - 1] != '"') {
         while (ss >> tmp2 && tmp2[tmp2.size() - 1] != '"') {
@@ -173,7 +173,7 @@ bool TextProcessor::ParseAndReorder(const std::string& tagged_text,
         }
         value += (" " + tmp2);
       }
-      assert(value[value.size() - 1] == '"');
+      if (value[value.size() - 1] != '"') return false;
       t.token_members.emplace_back(key);
       t.member2value[key] = value;
     }
