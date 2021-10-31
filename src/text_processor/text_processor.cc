@@ -24,7 +24,7 @@ fst::StdVectorFst* TextProcessor::SortInputLabels(const std::string& fst_path) {
   return sorted_fst;
 }
 
-void TextProcessor::FormatFst(fst::StdVectorFst *vfst) {
+void TextProcessor::FormatFst(fst::StdVectorFst* vfst) {
   for (fst::StateIterator<fst::StdVectorFst> state_iter(*vfst);
        !state_iter.Done(); state_iter.Next()) {
     int state_id = state_iter.Value();
@@ -40,101 +40,173 @@ void TextProcessor::FormatFst(fst::StdVectorFst *vfst) {
 
 std::string TextProcessor::ProcessInput(const std::string& input,
                                         bool verbose) {
+  std::chrono::time_point<std::chrono::steady_clock> time_start =
+    std::chrono::steady_clock::now();
   if (tagger_fst_ == nullptr || verbalizer_fst_ == nullptr) {
-    std::cout << "tagger_fst_ == nullptr OR verbalizer_fst_ == nullptr, "
-              << "will do nothing for input." << std::endl;
+    std::cout << WENET_YELLOW(WENET_HEADER)
+              << WENET_YELLOW("tagger_fst_ == nullptr OR ")
+              << WENET_YELLOW("verbalizer_fst_ == nullptr, ")
+              << WENET_YELLOW("will do nothing for input.") << std::endl;
     return input;
   }
-  // tagger
+  // stage-1: tagger
+  //   stage-1.1: construct input_fst from input string
   fst::StdVectorFst input_fst, tagged_lattice;
   if (!str_compiler_->operator()(input, &input_fst)) {
-    std::cout << "compile input to input_fst failed, "
-              << "will do nothing for input." << std::endl;
+    std::cout << WENET_YELLOW(WENET_HEADER)
+              << WENET_YELLOW("compile input to input_fst failed, ")
+              << WENET_YELLOW("will do nothing for input.") << std::endl;
     return input;
   }
+  //   stage-1.2: ensure that the ilabels and olabels are non-negative, details:
+  //           https://github.com/wenet-e2e/wenet/pull/494#discussion_r664542754
   FormatFst(&input_fst);
+  //   stage-1.3: compose input_fst with tagger_fst to get tagged_lattice
   fst::ComposeOptions opts(true, fst::ALT_SEQUENCE_FILTER);
   fst::Compose(input_fst, *tagger_fst_, &tagged_lattice, opts);
-  std::string tagged_text;
+  //   stage-1.4: search tagged_lattice
+  std::string tagged_text, reordered_text;
   if (!FstToString(tagged_lattice, &tagged_text)) {
-    std::cout << "convert tagged_lattice to tagged_text failed, "
-              << "will do nothing for input." << std::endl;
+    std::cout << WENET_YELLOW(WENET_HEADER)
+              << WENET_YELLOW("convert tagged_lattice to tagged_text failed, ")
+              << WENET_YELLOW("will do nothing for input.") << std::endl;
     return input;
   }
-  if (verbose) std::cout << "tagged_text   : " << tagged_text << std::endl;
+  if (verbose) {
+    std::cout << "tagged_text   : " << tagged_text << std::endl
+              << "tagger time cost: "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(
+                   std::chrono::steady_clock::now() - time_start).count()
+              << "ms" << std::endl;
+  }
 
-  // parse and reorder
-  std::string reordered_text = ParseAndReorder(tagged_text);
-  if (verbose) std::cout << "reordered_text: " << reordered_text << std::endl;
+  // stage-2: parse tagged_text and reorder
+  time_start = std::chrono::steady_clock::now();
+  if (!ParseAndReorder(tagged_text, &reordered_text)) {
+    std::cout << WENET_YELLOW(WENET_HEADER)
+              << WENET_YELLOW("convert tagged_text to reordered_text failed, ")
+              << WENET_YELLOW("will do nothing for input.") << std::endl;
+    return input;
+  }
+  if (verbose) {
+    std::cout << "reordered_text: " << reordered_text << std::endl
+              << "parse&reorder time cost: "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(
+                   std::chrono::steady_clock::now() - time_start).count()
+              << "ms" << std::endl;
+  }
 
-  // verbalizer
+  // stage-3: verbalizer
+  //   stage-3.1: construct input_fst from reordered_text
+  time_start = std::chrono::steady_clock::now();
   fst::StdVectorFst str_fst, verbalized_lattice;
   if (!str_compiler_->operator()(reordered_text, &str_fst)) {
-    std::cout << "compile reordered_text to str_fst failed, "
-              << "will do nothing for input." << std::endl;
+    std::cout << WENET_YELLOW(WENET_HEADER)
+              << WENET_YELLOW("compile reordered_text to str_fst failed, ")
+              << WENET_YELLOW("will do nothing for input.") << std::endl;
     return input;
   }
+  //   stage-3.2: ensure that the ilabels and olabels are non-negative, details:
+  //           https://github.com/wenet-e2e/wenet/pull/494#discussion_r664542754
   FormatFst(&str_fst);
+  //   stage-3.3: compose input_fst with verbalize_fst to get verbalizer_lattice
   fst::Compose(str_fst, *verbalizer_fst_, &verbalized_lattice, opts);
   std::string final_text;
+  //   stage-3.4: search verbalized_lattice
   if (!FstToString(verbalized_lattice, &final_text)) {
-    std::cout << "convert verbalized_lattice to final_text failed, "
-              << "will do nothing for input." << std::endl;
+    std::cout << WENET_YELLOW(WENET_HEADER)
+              << WENET_YELLOW("convert verbalized_lattice to final_text failed")
+              << WENET_YELLOW(", will do nothing for input.") << std::endl;
     return input;
+  }
+  if (verbose) {
+    std::cout << "verbalizer time cost: "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(
+                   std::chrono::steady_clock::now() - time_start).count()
+              << "ms" << std::endl;
   }
   return final_text;
 }
 
-std::string TextProcessor::ParseAndReorder(const std::string& structured_text) {
-  if (structured_text.empty()) return structured_text;
-  // i.e. structured_text =
+bool TextProcessor::ParseAndReorder(const std::string& tagged_text,
+                                    std::string* reordered_text) {
+  // i.e. tagged_text =
   //          token { fraction { denominator: "13" frac: "/" numerator: "12" } }
   //      OR
   //          token { word { name: "哈哈" } }
-  std::stringstream ss(structured_text);
+  if (tagged_text.empty()) return false;
+  std::stringstream ss(tagged_text);
   std::vector<Token> tokens;
-  std::string tmp, open_brace, close_brace, key, value;
-  // parse and reorder structured_text
+  std::string tmp, tmp2, open_brace, close_brace, key, value;
+
+  // stage-1 parse tagged_text and reorder
   // i.e. Token.token_name = fraction
-  //      Token.key_value_map =
-  //          {{denominator:, "13"}, {frac:, "/"}, {numerator:, "12"}}
-  //      Reverse(Token.key_valu_map) =
+  //      Token.token_members =
+  //          {denominator:, frac:, numerator:}
+  //      Reorder(Token.token_members) =
+  //          {numerator:, frac:, denominator:}
+  //      Token.member2value =
   //          {{numerator:, "12"}, {frac:, "/"}, {denominator:, "13"}}
   //     OR
   //      Token.token_name = word
-  //      Token.key_value_map =
-  //          {{name:, "哈哈"}}
-  //      Reverse(Token.key_value_map) =
+  //      Token.token_members =
+  //          {name:}
+  //      Reorder(Token.token_members) =
+  //          {name:}
+  //      Token.member2value =
   //          {{name:, "哈哈"}}
   while (ss >> tmp) {
+    // stage-1.1 parse/separate tagged_text using spaces
     assert(tmp == "token");
     Token t;
     ss >> open_brace;  // parse '{'
     ss >> t.token_name;
     ss >> open_brace;  // parse '{'
     while (ss >> key && key != "}") {
+      // parse value
       ss >> value;
-      t.key_value_map.emplace_back(make_pair(key, value));
+      assert(value[0] == '"');
+      // value may contain spaces, i.e., "2.3 millions"
+      if (value[value.size() - 1] != '"') {
+        while (ss >> tmp2 && tmp2[tmp2.size() - 1] != '"') {
+          value += (" " + tmp2);
+        }
+        value += (" " + tmp2);
+      }
+      assert(value[value.size() - 1] == '"');
+      t.token_members.emplace_back(key);
+      t.member2value[key] = value;
     }
     ss >> close_brace;  // parse '}'
-    std::reverse(t.key_value_map.begin(), t.key_value_map.end());  // reorder
+    // stage-1.2 reorder token according to predefined rules
+    if (t.token_members.size() > 1
+        && rules_.find(t.token_name) != rules_.end()) {
+      // check consistance
+      for (const auto& m : rules_[t.token_name]) {
+        if (t.member2value.find(m) == t.member2value.end()) return false;
+      }
+      // actually do the reordering
+      t.token_members = rules_[t.token_name];
+    }
     tokens.emplace_back(t);
   }
-  // reconstruct reordered_text
+
+  // stage-2: construct reordered_text
   // i.e. reordered_text =
   //          token { fraction { numerator: "12" frac: "/" denominator: "13" } }
   //      OR
   //          token { word { name: "哈哈" } }
-  std::string reordered_text;
   for (size_t i = 0; i < tokens.size(); ++i) {
-    if (i != 0) reordered_text += " ";
-    reordered_text += ("token { " + tokens[i].token_name + " { ");
-    for (const auto& k_v : tokens[i].key_value_map) {
-      reordered_text += (k_v.first + " " + k_v.second + " ");
+    if (i != 0) reordered_text->insert(reordered_text->size(), " ");
+    reordered_text->insert(reordered_text->size(),
+                           "token { " + tokens[i].token_name + " { ");
+    for (const auto& m : tokens[i].token_members) {
+      reordered_text->insert(reordered_text->size(),
+                             m + " " + tokens[i].member2value[m] + " ");
     }
-    reordered_text += "} }";
+    reordered_text->insert(reordered_text->size(), "} }");
   }
-  return reordered_text;
+  return true;
 }
 
 bool TextProcessor::FstToString(const fst::StdVectorFst& fst,

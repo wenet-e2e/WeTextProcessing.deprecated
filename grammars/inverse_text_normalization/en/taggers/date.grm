@@ -120,7 +120,7 @@ graph_my_structured = (
 #   twenty o six ==> month: "" day: "" year: "2006"
 graph_y_structured = (
   u.Insert["month: \"\" day: \"\" year: \""]
-  u.delete_space graph_range
+  graph_range
   u.Insert["\""]
 );
 

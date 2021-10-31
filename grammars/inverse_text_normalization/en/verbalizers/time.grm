@@ -21,8 +21,8 @@ export graph_time_unstructured = Optimize[
   u.Delete["\" minute: \""]
   ":" b.kDigit b.kDigit
   u.Delete["\" suffix: \""]
-  (graph_time_suffix | ("" <0.1>))
+  ((u.Insert[" "] graph_time_suffix) | ("" <0.1>))
   u.Delete["\" zone: \""]
-  (graph_time_zone | ("" <0.1>))
+  ((u.Insert[" "] graph_time_zone) | ("" <0.1>))
   u.Delete["\" }"]
 ];

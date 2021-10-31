@@ -4,7 +4,8 @@
 
 int main(int argc, char *argv[]) {
   if (argc != 4) {
-    std::cout << "[Usage]: ./text_process_main tagger.fst verbalizer.fst 1"
+    std::cout << WENET_RED("[Usage]: ./text_process_main")
+              << WENET_RED(" tagger.fst verbalizer.fst 1")
               << std::endl;
     return 0;
   }
@@ -16,10 +17,10 @@ int main(int argc, char *argv[]) {
   std::string input;
   std::cout << "Start Processing Text (verbose = "
             << verbose << "):" << std::endl << std::endl;
-  while (std::cin >> input) {
+  while (std::getline(std::cin, input)) {
     std::string output = text_processor.ProcessInput(input, verbose);
-    std::cout << "input : " << input << std::endl
-              << "output: " << output << std::endl << std::endl;
+    std::cout << "input : " << WENET_GREEN(input) << std::endl
+              << "output: " << WENET_BLUE(output) << std::endl << std::endl;
   }
   return 0;
 }

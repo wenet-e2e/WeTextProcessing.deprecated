@@ -7,11 +7,11 @@ import 'taggers/measure.grm' as measure;
 import 'taggers/money.grm' as money;
 import 'taggers/telephone.grm' as telephone;
 import 'taggers/time.grm' as time;
-import 'taggers/punctuation.grm' as punc;
 import 'taggers/word.grm' as word;
 import 'taggers/electronic.grm' as electronic;
 import 'taggers/whitelist.grm' as whitelist;
 import 'taggers/fraction.grm' as fraction;
+# import 'taggers/punctuation.grm' as punc;
 
 graph_classifier = (
   (whitelist.graph_whitelist_structured <1.01>)
@@ -27,23 +27,22 @@ graph_classifier = (
   | (word.graph_word_structured <1000>)
 );
 
-punct = (
-  u.Insert["token { "]
-  (punc.graph_punc_structured <1.1>)
-  u.Insert[" }"]
-);
-
 token = (
   u.Insert["token { "]
   graph_classifier
   u.Insert[" }"]
 );
 
-graph_token_plus_punc = (punct u.delete_space u.Insert[" "])* token (u.Insert[" "] u.delete_space punct)*;
+# punct = (
+#   u.Insert["token { "]
+#   (punc.graph_punc_structured <1.1>)
+#   u.Insert[" }"]
+# );
+# graph_token_plus_punc = (punct u.delete_space u.Insert[" "])* token (u.Insert[" "] u.delete_space punct)*;
 
 export TAGGER = Optimize[
   u.delete_space
-  graph_token_plus_punc
-  (u.Insert[" "] u.delete_space graph_token_plus_punc)*
+  token
+  (u.Insert[" "] u.delete_space token)*
   u.delete_space
 ];

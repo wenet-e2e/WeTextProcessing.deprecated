@@ -1,122 +1,19 @@
-this is the twentieth one, right ?
-this is the sixty seventh one, right ?
-this is the eleventh one, right ?
-this is the first one, right ?
-we have zero users, right ?
-we have one users, right ?
-we have two users, right ?
-we have three users, right ?
-we have seventeen users, right ?
-we have minus seventeen users, right ?
-we have twenty users, right ?
-we have twenty two users, right ?
-we have thirty users, right ?
-we have forty users, right ?
-we have fourty users, right ?
-we have fifty users, right ?
-we have sixty users, right ?
-we have seventy users, right ?
-we have eighty users, right ?
-we have ninety users, right ?
-we have forty third users, right ?
-we have fifty five users, right ?
-we have one hundred million users, right ?
-we have one billion users, right ?
-we have one thousand thirty one users, right ?
-we have one thousand and thirty one users, right ?
-we have minus one thousand and thirty one users, right ?
-we have seven hundred eighty nine users, right ?
-we have four hundred fifty six thousand nine users, right ?
-we have four hundred fifty six thousand and nine users, right ?
-we have four hundred fifty six thousand seven hundred and nine users, right ?
-we have four hundred fifty six thousand and seven hundred and nine users, right ?
-we have four hundred and six thousand seven hundred and nine users, right ?
-we have one hundred twenty three thousand seven hundred eighty nine users, right ?
-we have one hundred twenty three million seven hundred eighty nine users, right ?
-we have one hundred twenty three million four hundred fifty six thousand seven hundred eighty nine users, right ?
-we have one hundred twenty three million four hundred and six thousand seven hundred eighty nine users, right ?
-we have one hundred twenty three million four hundred and six thousand seven hundred and nine users, right ?
-we have one hundred twenty three million four hundred thousand seven hundred and nine users, right ?
-we have one hundred twenty three billion four hundred thousand seven hundred and nine users, right ?
-we have one hundred twenty three million seven hundred eighty nine point six users, right ?
-we have one hundred twenty three million four hundred fifty six thousand seven hundred eighty nine point zero users, right ?
-we have one hundred million four hundred fifty six thousand seven hundred eighty nine dot twenty users, right ?
-we have minus one hundred twenty three million fifty six thousand eighty nine dot twenty two users, right ?
-we have three hundred and three dot five users, right ?
-we have three point twenty three users, right ?
-we have two point three million users, right ?
-we have zero point four users, right ?
-we have point three users, right ?
-we have twenty three point four five users, right ?
-we have minus twelve point five o o six users, right ?
-we have twenty three point four five percent, right ?
-we have twenty three dot four five percent, right ?
-we have three point twenty three pounds per horsepower, right ?
-we have three point twenty three pounds, right ?
-we have three point twenty three pound, right ?
-we have fifty five pounds, right ?
-we have two thousand pounds, right ?
-we have two point three million dollars, right ?
-we have twenty three usd, right ?
-we have twenty three australian dollars, right ?
-we have twenty three rupees, right ?
-we have five pounds thirty three pence, right ?
-we have five pounds three pence, right ?
-we have one dollar and fifteen cents, right ?
-we have fifty rupees thirty paise, right ?
-we have five pounds three, right ?
-we have three cents, right ?
-we have twenty three pence, right ?
-we have twenty paise, right ?
-we have three million dollars three, right ?
-we love seven a m eastern standard time, right ?
-we love ten past four, right ?
-we love twelve past one, right ?
-we love two o clock a m, right ?
-we love quarter to two, right ?
-we love quarter past two, right ?
-we love half past two, right ?
-we love five o' clock, right ?
-we love two o eight, right ?
-we love two thirty five, right ?
-we love two thirty five am, right ?
-we love two pm, right ?
-we love twelve thirty p m, right ?
-we love nineteen sixty two, right ?
-we love twenty nineteen, right ?
-we love twenty twelve, right ?
-we love twenty one thirty, right ?
-we love twenty ten, right ?
-we love twenty twenties, right ?
-we love two thousands, right ?
-we love twelve hundreds, right ?
-we love twenty twenty, right ?
-we love may fifth twenty twelve, right ?
-we love may fifth, right ?
-we love five may, right ?
-we love january fifth twenty twelve, right ?
-we love the fifth of january twenty twelve, right ?
-we love may five twenty twelve, right ?
-we love five may twenty twelve, right ?
-we love c d f one at a b c dot e d u, right ?
-we love h t t p colon slash slash w w w dot baidu dot com, right ?
-we love h t t p s colon slash slash w w w dot baidu dot com, right ?
-we love w w w dot baidu dot com, right ?
-we love w w w dot c n n dot com slash ass, right ?
-we love w w w dot c n n dot com slash a s s, right ?
-we love four two five five five five one two one two, right ?
-yes it is a quarter, hah.
-yes it is three sixteenths, hah.
-yes it is a half, hah.
-yes it is a hundredth, hah.
-yes it is one hundredth, hah.
-yes it is two hundredths, hah.
-yes it is two sixths hah.
+this is the twentieth one or the sixty seventh one or the eleventh one or the first one ?
+the int number is zero or one or two or three or seventeen or minus seventeen or twenty or twenty two or thirty or forty or fourty or fifty or sixty or seventy or eighty or ninety or forty third or fifty five or one hundred million or one billion or one thousand thirty one or one thousand and thirty one or minus one thousand and thirty one or seven hundred eighty nine or four hundred fifty six thousand nine or four hundred fifty six thousand and nine or four hundred fifty six thousand seven hundred and nine or four hundred fifty six thousand and seven hundred and nine or four hundred and six thousand seven hundred and nine or one hundred twenty three thousand seven hundred eighty nine or one hundred twenty three million seven hundred eighty nine or one hundred twenty three million four hundred fifty six thousand seven hundred eighty nine or one hundred twenty three million four hundred and six thousand seven hundred eighty nine or one hundred twenty three million four hundred and six thousand seven hundred and nine or one hundred twenty three million four hundred thousand seven hundred and nine or one hundred twenty three billion four hundred thousand seven hundred and nine
+the float number is one hundred twenty three million seven hundred eighty nine point six or one hundred twenty three million four hundred fifty six thousand seven hundred eighty nine point zero or one hundred million four hundred fifty six thousand seven hundred eighty nine dot twenty or minus one hundred twenty three million fifty six thousand eighty nine dot twenty two or three hundred and three dot five or three point twenty three or two point three million or zero point four or point three or twenty three point four five or minus twelve point five o o six
+twenty three point  four five percent or twenty three dot four five percent or three point twenty three pounds per horsepower
+we have three point twenty three pounds or three point twenty three pound or fifty five pounds or two thousand pounds or two point three million dollars or twenty three usd or twenty three australian dollars or twenty three rupees or five pounds thirty three pence or five pounds three pence or one dollar and fifteen cents or fifty rupees thirty paise or five pounds three or three cents or twenty three pence or twenty paise or three million dollars three
+the time is seven a m eastern standard time or ten past four or twelve past one or two o clock a m or quarter to two or quarter past two or half past two or five o' clock or two o eight or two thirty five or two thirty five am or two pm or twelve thirty p m
+the date is june nineteen sixty or twenty one thirties or twenty tens or twenty twenties or two thousands or twelve hundreds or may fifth twenty twelve or may fifth or five may or january fifth twenty twelve or the fifth of january twenty twelve or may five twenty twelve or five may twenty twelve
+the url is c d f one at a b c dot e d u or h t t p colon slash slash w w w dot baidu dot com or h t t p s colon slash slash w w w dot baidu dot com or w w w dot baidu dot com or w w w dot c n n dot com slash ass or w w w dot c n n dot com slash a s s
+the passward is  four two five five five five
+the fraction is a quarter or three sixteenths or a half or a hundredth or one hundredth or two hundredths or two sixths
 My phone number is four two five five five five one two one two
-the year is twenty twelve
 twenty three to thirty seven
 at first we should do something
 three four five
 twenty sixth avenue
 today is may fifth twenty twelve
 a hundred
+one hundred twenty three million four hundred thousand seven hundred and nine
+Horace Ventimore was a young architect. His cherished dream was to marry his girlfriend Sylvia. He loved her with all his heart. But Horace had neither money nor work. Sylvia's father and mother had no wish to let his daughter marry a poor man without work. The young architect was very sad. He was clever, energetic and talented, but he had no clients. Days passed. Horace sat in his office and nobody asked him to build a house. But once Sylvia's father came with a sudden request. He wanted Horace to buy some Oriental things for him. Horace was surprised and disappointed. He knew nothing about Oriental culture. The young man wanted to refuse, but he wanted to pleasure Sylvia's father. So he agreed.
