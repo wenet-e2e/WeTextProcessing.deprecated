@@ -6,11 +6,13 @@
 #include <utility>
 #include <string>
 #include <memory>
+#include <chrono>
 #include <vector>
 #include <unordered_map>
 
 #include "fst/fstlib.h"
 #include "utils/paths.h"
+#include "utils/colors.h"
 
 namespace wenet {
 

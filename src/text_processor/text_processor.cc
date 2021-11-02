@@ -18,7 +18,8 @@ TextProcessor::TextProcessor(const std::string& tagger_fst_path,
 
 fst::StdVectorFst* TextProcessor::SortInputLabels(const std::string& fst_path) {
   fst::StdVectorFst* sorted_fst = fst::StdVectorFst::Read(fst_path);
-  std::cout << "Updating FST " << static_cast<const void*>(sorted_fst)
+  std::cout << WENET_HEADER << "Updating TN/ITN FST "
+            << static_cast<const void*>(sorted_fst)
             << " with input label sorted version." << std::endl;
   fst::ArcSort(sorted_fst, fst::ILabelCompare<fst::StdArc>());
   return sorted_fst;
@@ -40,49 +41,90 @@ void TextProcessor::FormatFst(fst::StdVectorFst* vfst) {
 
 std::string TextProcessor::ProcessInput(const std::string& input,
                                         bool verbose) {
+  std::chrono::time_point<std::chrono::steady_clock> time_start =
+    std::chrono::steady_clock::now();
   if (tagger_fst_ == nullptr || verbalizer_fst_ == nullptr) {
-    std::cout << "tagger_fst_ == nullptr OR verbalizer_fst_ == nullptr, "
-              << "will do nothing for input." << std::endl;
+    std::cout << WENET_YELLOW(WENET_HEADER)
+              << WENET_YELLOW("tagger_fst_ == nullptr OR ")
+              << WENET_YELLOW("verbalizer_fst_ == nullptr, ")
+              << WENET_YELLOW("will do nothing for input.") << std::endl;
     return input;
   }
-  // tagger
+  // stage-1: tagger
+  //   stage-1.1: construct input_fst from input string
   fst::StdVectorFst input_fst, tagged_lattice;
   if (!str_compiler_->operator()(input, &input_fst)) {
-    std::cout << "compile input to input_fst failed, "
-              << "will do nothing for input." << std::endl;
+    std::cout << WENET_YELLOW(WENET_HEADER)
+              << WENET_YELLOW("compile input to input_fst failed, ")
+              << WENET_YELLOW("will do nothing for input.") << std::endl;
     return input;
   }
+  //   stage-1.2: ensure that the ilabels and olabels are non-negative, details:
+  //           https://github.com/wenet-e2e/wenet/pull/494#discussion_r664542754
   FormatFst(&input_fst);
+  //   stage-1.3: compose input_fst with tagger_fst to get tagged_lattice
   fst::ComposeOptions opts(true, fst::ALT_SEQUENCE_FILTER);
   fst::Compose(input_fst, *tagger_fst_, &tagged_lattice, opts);
+  //   stage-1.4: search tagged_lattice
   std::string tagged_text, reordered_text;
   if (!FstToString(tagged_lattice, &tagged_text)) {
-    std::cout << "convert tagged_lattice to tagged_text failed, "
-              << "will do nothing for input." << std::endl;
+    std::cout << WENET_YELLOW(WENET_HEADER)
+              << WENET_YELLOW("convert tagged_lattice to tagged_text failed, ")
+              << WENET_YELLOW("will do nothing for input.") << std::endl;
     return input;
   }
-  if (verbose) std::cout << "tagged_text   : " << tagged_text << std::endl;
+  if (verbose) {
+    std::cout << "tagged_text   : " << tagged_text << std::endl
+              << "tagger time cost: "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(
+                   std::chrono::steady_clock::now() - time_start).count()
+              << "ms" << std::endl;
+  }
 
-  // parse and reorder
+  // stage-2: parse tagged_text and reorder
+  time_start = std::chrono::steady_clock::now();
   if (!ParseAndReorder(tagged_text, &reordered_text)) {
+    std::cout << WENET_YELLOW(WENET_HEADER)
+              << WENET_YELLOW("convert tagged_text to reordered_text failed, ")
+              << WENET_YELLOW("will do nothing for input.") << std::endl;
     return input;
   }
-  if (verbose) std::cout << "reordered_text: " << reordered_text << std::endl;
+  if (verbose) {
+    std::cout << "reordered_text: " << reordered_text << std::endl
+              << "parse&reorder time cost: "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(
+                   std::chrono::steady_clock::now() - time_start).count()
+              << "ms" << std::endl;
+  }
 
-  // verbalizer
+  // stage-3: verbalizer
+  //   stage-3.1: construct input_fst from reordered_text
+  time_start = std::chrono::steady_clock::now();
   fst::StdVectorFst str_fst, verbalized_lattice;
   if (!str_compiler_->operator()(reordered_text, &str_fst)) {
-    std::cout << "compile reordered_text to str_fst failed, "
-              << "will do nothing for input." << std::endl;
+    std::cout << WENET_YELLOW(WENET_HEADER)
+              << WENET_YELLOW("compile reordered_text to str_fst failed, ")
+              << WENET_YELLOW("will do nothing for input.") << std::endl;
     return input;
   }
+  //   stage-3.2: ensure that the ilabels and olabels are non-negative, details:
+  //           https://github.com/wenet-e2e/wenet/pull/494#discussion_r664542754
   FormatFst(&str_fst);
+  //   stage-3.3: compose input_fst with verbalize_fst to get verbalizer_lattice
   fst::Compose(str_fst, *verbalizer_fst_, &verbalized_lattice, opts);
+  //   stage-3.4: search verbalized_lattice
   std::string final_text;
   if (!FstToString(verbalized_lattice, &final_text)) {
-    std::cout << "convert verbalized_lattice to final_text failed, "
-              << "will do nothing for input." << std::endl;
+    std::cout << WENET_YELLOW(WENET_HEADER)
+              << WENET_YELLOW("convert verbalized_lattice to final_text failed")
+              << WENET_YELLOW(", will do nothing for input.") << std::endl;
     return input;
+  }
+  if (verbose) {
+    std::cout << "verbalizer time cost: "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(
+                   std::chrono::steady_clock::now() - time_start).count()
+              << "ms" << std::endl;
   }
   return final_text;
 }
