@@ -6,6 +6,7 @@ import 'common/util.grm' as u;
 # Example:
 #   january ==> january
 graph_month = StringFile['data/months.tsv'];
+
 graph_m_unstructured = (
   u.Delete["month: \""]
   graph_month (("" <0.1>) | "-")
@@ -31,8 +32,8 @@ graph_md_unstructured = (
 );
 
 # Example:
-#   day: "5th-" month: "may-" year: "2012" ==> 5th-may-2012
-#   month: "may-" day: "5th-" year: "2012" ==> may-5th-2012
+#   date { day: "5th-" month: "may-" year: "2012" } ==> 5th-may-2012
+#   date { month: "may-" day: "5th-" year: "2012" } ==> may-5th-2012
 export graph_date_unstructured = Optimize[
   u.Delete["date { "]
   (

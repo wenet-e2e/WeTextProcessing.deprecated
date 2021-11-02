@@ -5,6 +5,11 @@ import 'verbalizers/date.grm' as date;
 import 'verbalizers/money.grm' as money;
 import 'verbalizers/others.grm' as others;
 
+# Example:
+#   token { time { hour: "01" minute: ":10" suffix: "" zone: "" } }             ==> 01:10
+#   token { date { day: "5th-" month: "may-" year: "2012" } }                   ==> 5th-may-2012
+#   token { money { currency: "$" interger_part: "" fractional_part: "3.23" } } ==> $3.23
+#   token { word { content: "hah" } }                                           ==> hah
 graph_token_unstructured = (
   u.Delete["token { "]
   (
@@ -16,6 +21,10 @@ graph_token_unstructured = (
   u.Delete[" }"]
 );
 
+# Example:
+#   token { word { content: "today" } } token { word { content: "is" } } token { date { month: "may-" day: "5th-" year: "2012" } } ==> today is may-5th-2012
+#   token { whitelist { content: "at first" } } token { word { content: "we" } } token { word { content: "should" } } token { word { content: "do" } } token { word { content: "something" } } ==> at first we should do something
+#   token { word { content: "we" } } token { word { content: "have" } } token { money { currency: "£" interger_part: "" fractional_part: "3.23" } } ==> we have £3.23
 export VERBALIZER = Optimize[
   graph_token_unstructured
   (" " graph_token_unstructured)*

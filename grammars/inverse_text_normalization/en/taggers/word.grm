@@ -1,6 +1,8 @@
 import 'common/byte.grm' as b;
 import 'common/util.grm' as u;
 
+# Example:
+#   hello, ==> word { content: "hello," }
 export graph_word_structured = Optimize[
   u.Insert["word { content: \""]
   (b.kAlpha | b.kPunct)+

@@ -40,6 +40,10 @@ token = (
 # );
 # graph_token_plus_punc = (punct u.delete_space u.Insert[" "])* token (u.Insert[" "] u.delete_space punct)*;
 
+# Example:
+#   today is may fifth twenty twelve        ==> token { word { content: "today" } } token { word { content: "is" } } token { date { month: "may-" day: "5th-" year: "2012" } }
+#   at first we should do something         ==> token { whitelist { content: "at first" } } token { word { content: "we" } } token { word { content: "should" } } token { word { content: "do" } } token { word { content: "something" } }
+#   we have three point twenty three pounds ==> token { word { content: "we" } } token { word { content: "have" } } token { money { interger_part: "" fractional_part: "3.23" currency: "£" } }
 export TAGGER = Optimize[
   u.delete_space
   token

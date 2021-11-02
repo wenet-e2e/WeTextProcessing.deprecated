@@ -7,8 +7,8 @@ import 'common/util.grm' as u;
 #   avoid duplication of definitions
 # Doc:
 #   StringFile: loads a file consisting of a list of strings or pairs of strings and compiles it (in byte mode)
-#   to an FST that represents the union of those string. It is equivalent to the union of those
-#   strings ("string1 | string2 | string3 | ..."), but can be **significantly more efficient** for large lists.
+#               to an FST that represents the union of those string. It is equivalent to the union of those
+#               strings ("string1 | string2 | string3 | ..."), but can be **significantly more efficient** for large lists.
 #   ref: https://www.openfst.org/twiki/bin/view/GRM/ThraxQuickTour
 export graph_0 = StringFile['data/numbers/zero.tsv'];
 export graph_1_to_9 = StringFile['data/numbers/digit.tsv'];
@@ -19,11 +19,11 @@ export graph_0_to_9 = graph_0 | graph_1_to_9;
 export graph_0_to_9_plus_o = graph_0_to_9 | ("o":"0") | ("oh":"0");
 export graph_20_to_99 = graph_ties ((u.delete_space graph_1_to_9) | (u.Insert["0"] <0.1>));
 
+# Comment:
+#   used in date.grm.graph_day
 # Example:
 #   six         ==> 6
 #   ninety nine ==> 99
-# Comment:
-#   used in date.grm.graph_day
 export graph_0_to_99 = graph_0_to_9 | graph_10_to_19 | graph_20_to_99;
 
 # Example:
@@ -73,8 +73,8 @@ graph_remove_leading_zeros = (u.Delete[("0"*)] (b.kDigit - "0") (b.kDigit*)) | (
 
 # Comment:
 #   remove "and" after xxxlion/hundred/thousand.
-#   detailed explaination about the usage of 'and' in Spoken Numbers (in section-4):
-#   see: https://guinlist.wordpress.com/tag/and-in-numbers/
+#   detailed explaination about the usage of 'and' in Spoken Numbers:
+#   see: https://guinlist.wordpress.com/tag/and-in-numbers/ (in section-4)
 # DOC:
 #   CDRewrite: given a transducer and two context acceptors (and the alphabet machine),
 #   this will generate a new FST that performs the rewrite everywhere in the provided contexts.

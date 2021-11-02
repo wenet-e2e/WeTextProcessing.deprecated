@@ -30,7 +30,7 @@ export graph_float = Optimize[
 ];
 
 # Example:
-#   twelve point five o o six ==> token { float { content: "12.5006" } }
+#   twelve point five o o six ==> float { content: "12.5006" }
 export graph_float_structured = Optimize[
   u.Insert["float { content: \""]
   graph_float
