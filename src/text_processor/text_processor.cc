@@ -24,7 +24,7 @@ fst::StdVectorFst* TextProcessor::SortInputLabels(const std::string& fst_path) {
   return sorted_fst;
 }
 
-void TextProcessor::FormatFst(fst::StdVectorFst *vfst) {
+void TextProcessor::FormatFst(fst::StdVectorFst* vfst) {
   for (fst::StateIterator<fst::StdVectorFst> state_iter(*vfst);
        !state_iter.Done(); state_iter.Next()) {
     int state_id = state_iter.Value();
@@ -55,7 +55,7 @@ std::string TextProcessor::ProcessInput(const std::string& input,
   FormatFst(&input_fst);
   fst::ComposeOptions opts(true, fst::ALT_SEQUENCE_FILTER);
   fst::Compose(input_fst, *tagger_fst_, &tagged_lattice, opts);
-  std::string tagged_text;
+  std::string tagged_text, reordered_text;
   if (!FstToString(tagged_lattice, &tagged_text)) {
     std::cout << "convert tagged_lattice to tagged_text failed, "
               << "will do nothing for input." << std::endl;
@@ -64,7 +64,9 @@ std::string TextProcessor::ProcessInput(const std::string& input,
   if (verbose) std::cout << "tagged_text   : " << tagged_text << std::endl;
 
   // parse and reorder
-  std::string reordered_text = ParseAndReorder(tagged_text);
+  if (!ParseAndReorder(tagged_text, &reordered_text)) {
+    return input;
+  }
   if (verbose) std::cout << "reordered_text: " << reordered_text << std::endl;
 
   // verbalizer
@@ -85,56 +87,85 @@ std::string TextProcessor::ProcessInput(const std::string& input,
   return final_text;
 }
 
-std::string TextProcessor::ParseAndReorder(const std::string& structured_text) {
-  if (structured_text.empty()) return structured_text;
-  // i.e. structured_text =
+bool TextProcessor::ParseAndReorder(const std::string& tagged_text,
+                                    std::string* reordered_text) {
+  // i.e. tagged_text =
   //          token { fraction { denominator: "13" frac: "/" numerator: "12" } }
   //      OR
   //          token { word { name: "哈哈" } }
-  std::stringstream ss(structured_text);
+  if (tagged_text.empty()) return false;
+  std::stringstream ss(tagged_text);
   std::vector<Token> tokens;
-  std::string tmp, open_brace, close_brace, key, value;
-  // parse and reorder structured_text
+  std::string tmp, tmp2, open_brace, close_brace, key, value;
+
+  // stage-1 parse tagged_text and reorder
   // i.e. Token.token_name = fraction
-  //      Token.key_value_map =
-  //          {{denominator:, "13"}, {frac:, "/"}, {numerator:, "12"}}
-  //      Reverse(Token.key_valu_map) =
+  //      Token.token_members =
+  //          {denominator:, frac:, numerator:}
+  //      Reorder(Token.token_members) =
+  //          {numerator:, frac:, denominator:}
+  //      Token.member2value =
   //          {{numerator:, "12"}, {frac:, "/"}, {denominator:, "13"}}
   //     OR
   //      Token.token_name = word
-  //      Token.key_value_map =
-  //          {{name:, "哈哈"}}
-  //      Reverse(Token.key_value_map) =
+  //      Token.token_members =
+  //          {name:}
+  //      Reorder(Token.token_members) =
+  //          {name:}
+  //      Token.member2value =
   //          {{name:, "哈哈"}}
   while (ss >> tmp) {
-    assert(tmp == "token");
+    // stage-1.1 parse/separate tagged_text using spaces
+    if (tmp != "token") return false;
     Token t;
     ss >> open_brace;  // parse '{'
     ss >> t.token_name;
     ss >> open_brace;  // parse '{'
     while (ss >> key && key != "}") {
+      // parse value
       ss >> value;
-      t.key_value_map.emplace_back(make_pair(key, value));
+      if (value[0] != '"') return false;
+      // value may contain spaces, i.e., "2.3 millions"
+      if (value[value.size() - 1] != '"') {
+        while (ss >> tmp2 && tmp2[tmp2.size() - 1] != '"') {
+          value += (" " + tmp2);
+        }
+        value += (" " + tmp2);
+      }
+      if (value[value.size() - 1] != '"') return false;
+      t.token_members.emplace_back(key);
+      t.member2value[key] = value;
     }
     ss >> close_brace;  // parse '}'
-    std::reverse(t.key_value_map.begin(), t.key_value_map.end());  // reorder
+    // stage-1.2 reorder token according to predefined rules
+    if (t.token_members.size() > 1
+        && rules_.find(t.token_name) != rules_.end()) {
+      // check consistance
+      for (const auto& m : rules_[t.token_name]) {
+        if (t.member2value.find(m) == t.member2value.end()) return false;
+      }
+      // actually do the reordering
+      t.token_members = rules_[t.token_name];
+    }
     tokens.emplace_back(t);
   }
-  // reconstruct reordered_text
+
+  // stage-2: construct reordered_text
   // i.e. reordered_text =
   //          token { fraction { numerator: "12" frac: "/" denominator: "13" } }
   //      OR
   //          token { word { name: "哈哈" } }
-  std::string reordered_text;
   for (size_t i = 0; i < tokens.size(); ++i) {
-    if (i != 0) reordered_text += " ";
-    reordered_text += ("token { " + tokens[i].token_name + " { ");
-    for (const auto& k_v : tokens[i].key_value_map) {
-      reordered_text += (k_v.first + " " + k_v.second + " ");
+    if (i != 0) reordered_text->insert(reordered_text->size(), " ");
+    reordered_text->insert(reordered_text->size(),
+                           "token { " + tokens[i].token_name + " { ");
+    for (const auto& m : tokens[i].token_members) {
+      reordered_text->insert(reordered_text->size(),
+                             m + " " + tokens[i].member2value[m] + " ");
     }
-    reordered_text += "} }";
+    reordered_text->insert(reordered_text->size(), "} }");
   }
-  return reordered_text;
+  return true;
 }
 
 bool TextProcessor::FstToString(const fst::StdVectorFst& fst,

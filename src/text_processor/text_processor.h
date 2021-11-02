@@ -7,16 +7,25 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <unordered_map>
 
 #include "fst/fstlib.h"
 #include "utils/paths.h"
 
 namespace wenet {
 
+const std::unordered_map<std::string, std::vector<std::string>> ReorderRules({
+  {"money", {"currency:", "interger_part:", "fractional_part:"}},
+  {"time", {"hour:", "minute:", "suffix:", "zone:"}},
+  {"fraction", {"numerator:", "frac:", "denominator:"}}
+});
+
 struct Token {
   std::string token_name;
-  // we want to keep the insertion order thus we use vector instead of map
-  std::vector<std::pair<std::string, std::string>> key_value_map;
+  // we want to keep the insertion order thus
+  // we use vector + hash instead of map
+  std::vector<std::string> token_members;
+  std::unordered_map<std::string, std::string> member2value;
 };
 
 class TextProcessor {
@@ -26,7 +35,8 @@ class TextProcessor {
   fst::StdVectorFst* SortInputLabels(const std::string& fst_path);
   void FormatFst(fst::StdVectorFst* fst);
   std::string ProcessInput(const std::string& input, bool verbose);
-  std::string ParseAndReorder(const std::string& tagged_text);
+  bool ParseAndReorder(const std::string& tagged_text,
+                       std::string* reordered_text);
   bool FstToString(const fst::StdVectorFst& fst,
                    std::string* text);
 
@@ -34,6 +44,8 @@ class TextProcessor {
   std::shared_ptr<fst::StringCompiler<fst::StdArc>> str_compiler_ = nullptr;
   std::shared_ptr<fst::StdVectorFst> tagger_fst_ = nullptr;
   std::shared_ptr<fst::StdVectorFst> verbalizer_fst_ = nullptr;
+  std::unordered_map<std::string,
+                     std::vector<std::string>> rules_ = ReorderRules;
 };
 
 }  // namespace wenet
