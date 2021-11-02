@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
   std::string input;
   std::cout << "Start Processing Text (verbose = "
             << verbose << "):" << std::endl << std::endl;
-  while (std::cin >> input) {
+  while (std::getline(std::cin, input)) {
     std::string output = text_processor.ProcessInput(input, verbose);
     std::cout << "input : " << input << std::endl
               << "output: " << output << std::endl << std::endl;
