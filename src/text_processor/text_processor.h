@@ -24,7 +24,7 @@ namespace wenet {
 #define WENET_YELLOW(a) WENET_COLOR(a, 33)
 #define WENET_BLUE(a) WENET_COLOR(a, 34)
 
-const std::unordered_map<std::string, std::vector<std::string>> ReorderRules({
+const std::unordered_map<std::string, std::vector<std::string>> kReorderRules({
   {"money", {"currency:", "interger_part:", "fractional_part:"}},
   {"time", {"hour:", "minute:", "suffix:", "zone:"}},
   {"fraction", {"numerator:", "frac:", "denominator:"}}
@@ -55,7 +55,7 @@ class TextProcessor {
   std::shared_ptr<fst::StdVectorFst> tagger_fst_ = nullptr;
   std::shared_ptr<fst::StdVectorFst> verbalizer_fst_ = nullptr;
   std::unordered_map<std::string,
-                     std::vector<std::string>> rules_ = ReorderRules;
+                     std::vector<std::string>> rules_ = kReorderRules;
 };
 
 }  // namespace wenet
