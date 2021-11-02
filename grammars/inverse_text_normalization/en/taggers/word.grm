@@ -3,6 +3,6 @@ import 'common/util.grm' as u;
 
 export graph_word_structured = Optimize[
   u.Insert["word { content: \""]
-  (b.kAlpha+)
+  (b.kAlpha | b.kPunct)+
   u.Insert["\" }"]
 ];

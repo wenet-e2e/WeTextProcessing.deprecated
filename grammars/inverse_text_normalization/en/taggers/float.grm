@@ -12,7 +12,12 @@ graph_decimal_point = ("point":".") | ("dot":".");
 
 # Comment:
 #   at least one digit after the decimal point
-graph_numbers_after_the_decimal_point = (int.graph_0_to_9_plus_o (((u.delete_space int.graph_0_to_9_plus_o)<-1.0>)*)) | int.graph_0_to_99;
+graph_numbers_after_the_decimal_point = (
+  (
+    ((int.graph_0_to_9_plus_o u.delete_space)<-0.1>)*
+    int.graph_0_to_9
+  ) | int.graph_0_to_99
+);
 
 # Example:
 #   twelve point five o o six ==> 12.5006
