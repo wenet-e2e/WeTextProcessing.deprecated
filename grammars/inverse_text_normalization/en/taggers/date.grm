@@ -1,0 +1,167 @@
+import 'common/byte.grm' as b;
+import 'common/util.grm' as u;
+import 'taggers/int.grm' as int;
+
+# Example:
+#   fifth ==> 5
+graph_day = int.graph_ordinal_to_cardinal @ int.graph_0_to_99 @ int.graph_ordinal_suffix;
+
+# Comment:
+#   This is an acceptor.
+# Example:
+#   january ==> january
+graph_month = StringFile['data/months.tsv'];
+
+# Comment:
+#   Transducer for decades (1**0s, 2**0s), centuries (2*00s, 1*00s), millennia (2000s)
+# Example:
+#   twelve hundreds ==> 1200s
+#   two thousands   ==> 2000s
+#   twenty twenties ==> 2020s
+graph_range = (
+  (
+    ((int.graph_10_to_19 | int.graph_20_to_99) u.delete_space ("hundreds":"00s"))
+    | (("two":"2") u.delete_space ("thousands":"000s"))
+    | (
+        (int.graph_10_to_19 | int.graph_20_to_99)
+        u.delete_space
+        (
+          (
+            (b.kAlpha+)
+            (("ies":"y") | (u.Delete["s"] <1.1>))
+          ) @ (int.graph_20_to_99 | ("ten":"10"))
+        )
+        u.Insert["s"]
+      )
+  ) @ (("1" | "2") b.kDigit b.kDigit b.kDigit "s")
+);
+
+# Example:
+#   o six ==> 06
+graph_0X = (("o":"0") | ("oh":"0")) u.delete_space int.graph_1_to_9;
+
+# Example:
+#   one thousand two hundred twenty one ==> 1221
+graph_thousands = (
+  int.graph_1_to_9 u.delete_space u.Delete["thousand"]
+  (
+    (
+      u.delete_space int.graph_1_to_9
+      u.delete_space u.Delete["hundred"]
+    ) | (u.Insert["0"] <1.1>)
+  )
+  u.delete_space (int.graph_10_to_19 | int.graph_20_to_99)
+);
+
+# Example:
+#   twenty o six  ==> 2006
+#   twenty eleven ==> 2011
+#   twenty twenty ==> 2020
+graph_year = (
+  (
+    (int.graph_10_to_19 | int.graph_20_to_99)
+    u.delete_space
+    (graph_0X | int.graph_10_to_19 | int.graph_20_to_99)
+  ) | graph_thousands
+);
+
+# Example:
+#   may fifth              ==> month: "may-" day: "5th" year: ""
+#   may fifth twenty o six ==> month: "may-" day: "5th-" year: "2006"
+graph_md_mdy_structured = (
+  u.Insert["month: \""]
+  graph_month
+  u.Insert["-\" day: \""]
+  u.delete_space (graph_day | int.graph_0_to_99)
+  (
+    (
+      u.Insert["-\" year: \""]
+      u.delete_space graph_year
+      u.Insert["\""]
+    ) | (u.Insert["\" year: \"\""] <1.1>)
+  )
+);
+
+# Example:
+#   the fifth of may              ==> day: "5th-" month: "may" year: ""
+#   five may                      ==> day: "5-" month: "may" year: ""
+#   the fifth of may twenty o six ==> day: "5th-" month: "may-" year: "2006"
+graph_dm_dmy_structured = (
+  u.Insert["day: \""]
+  (
+    (
+      u.Delete["the"]
+      u.delete_space graph_day
+      u.delete_space u.Delete["of"]
+    ) | (int.graph_0_to_99)
+  )
+  u.Insert["-\" month: \""]
+  u.delete_space graph_month
+  (
+    (
+      u.Insert["-\" year: \""]
+      u.delete_space graph_year
+      u.Insert["\""]
+    ) | (u.Insert["\" year: \"\""] <1.1>)
+  )
+);
+
+# Example:
+#   may twenty o six ==> month: "may-" day: "" year: "2006"
+graph_my_structured = (
+  u.Insert["month: \""]
+  graph_month
+  u.Insert["-\" day: \"\" year: \""]
+  u.delete_space graph_year
+  u.Insert["\""]
+);
+
+# Example:
+#   twenty o six ==> month: "" day: "" year: "2006"
+graph_y_structured = (
+  u.Insert["month: \"\" day: \"\" year: \""]
+  graph_range
+  u.Insert["\""]
+);
+
+# Example:
+#   twenty o six ==> date { month: "" day: "" year: "2006" }
+export graph_date_structured = Optimize[
+  u.Insert["date { "]
+  (graph_y_structured | graph_dm_dmy_structured | graph_md_mdy_structured | graph_my_structured)
+  u.Insert[" }"]
+];
+
+# Comment:
+#   This is making transducer significantly slower and larger, so only use when
+#   you want to rewrites portions of the input in a context-dependent fashion, otherwise leave it.
+
+# graph_md_mdy = (
+#   graph_month
+#   u.Insert["-"] u.delete_space (graph_day | int.graph_0_to_99)
+#   (
+#     (u.Insert["-"] u.delete_space graph_year)
+#     | ("":"" <1.1>)
+#   )
+# );
+# graph_dm_dmy = (
+#   (
+#     (
+#       u.Delete["the"]
+#       u.delete_space graph_day
+#       u.delete_space u.Delete["of"]
+#     ) | (int.graph_0_to_99)
+#   )
+#   u.Insert["-"] u.delete_space graph_month
+#   (
+#     (u.Insert["-"] u.delete_space graph_year)
+#     | ("":"" <1.1>)
+#   )
+# );
+# graph_my = (
+#   graph_month
+#   u.Insert["-"] u.delete_space graph_year
+# );
+# graph_y = graph_range;
+# export graph_date = Optimize[graph_y | graph_my | graph_dm_dmy | graph_md_mdy];
+# export DATE = CDRewrite[graph_date, (" " | "[BOS]"), (" " | "[EOS]"), b.kBytes*];

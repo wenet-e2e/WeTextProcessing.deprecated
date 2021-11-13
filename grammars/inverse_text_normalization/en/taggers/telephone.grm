@@ -1,0 +1,37 @@
+import 'common/byte.grm' as b;
+import 'common/util.grm' as u;
+import 'taggers/int.grm' as int;
+
+graph_0_to_9 = Invert[int.graph_0_to_9_plus_o];
+
+graph_three_digit = ((graph_0_to_9 u.Insert[" "]){2, 2}) graph_0_to_9;
+graph_four_digit = ((graph_0_to_9 u.Insert[" "]){3, 3}) graph_0_to_9;
+
+# Example:
+#   one two three one two three o o o o ==> 123-123-0000
+export graph_telephone = Optimize[Invert[
+  (
+    (graph_three_digit u.Delete["-"])
+    | (
+        u.Delete["("] graph_three_digit u.Delete[")"]
+        (u.Delete["-"]{0, 1})
+        u.Delete[" "]
+      )
+  )
+  u.Insert[" "]
+  graph_three_digit
+  u.Delete["-"]
+  u.Insert[" "]
+  graph_four_digit
+]];
+
+export graph_telephone_structured = Optimize[
+  u.Insert["telephone { content: \""]
+  graph_telephone
+  u.Insert["\" }"]
+];
+
+# Comment:
+#   This is making transducer significantly slower and larger, so only use when
+#   you want to rewrites portions of the input in a context-dependent fashion, otherwise leave it.
+# export TELEPHONE = CDRewrite[graph_telephone, (" " | "[BOS]"), (" " | "[EOS]"), b.kBytes*];

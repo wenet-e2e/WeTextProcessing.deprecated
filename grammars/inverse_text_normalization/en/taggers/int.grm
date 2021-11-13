@@ -1,0 +1,137 @@
+import 'common/byte.grm' as b;
+import 'common/util.grm' as u;
+
+# Comment:
+#   The reason why we divided 0-99 into different parts is that
+#   some parts can be easily imported by other *.grm, so as to
+#   avoid duplication of definitions
+# Doc:
+#   StringFile: loads a file consisting of a list of strings or pairs of strings and compiles it (in byte mode)
+#               to an FST that represents the union of those string. It is equivalent to the union of those
+#               strings ("string1 | string2 | string3 | ..."), but can be **significantly more efficient** for large lists.
+#   ref: https://www.openfst.org/twiki/bin/view/GRM/ThraxQuickTour
+export graph_0 = StringFile['data/numbers/zero.tsv'];
+export graph_1_to_9 = StringFile['data/numbers/digit.tsv'];
+export graph_10_to_19 = StringFile['data/numbers/teen.tsv'];
+export graph_ties = StringFile['data/numbers/ties.tsv'];
+export graph_lions = StringFile['data/numbers/thousands.tsv'];
+export graph_0_to_9 = graph_0 | graph_1_to_9;
+export graph_0_to_9_plus_o = graph_0_to_9 | ("o":"0") | ("oh":"0");
+export graph_20_to_99 = graph_ties ((u.delete_space graph_1_to_9) | (u.Insert["0"] <0.1>));
+
+# Comment:
+#   used in date.grm.graph_day
+# Example:
+#   six         ==> 6
+#   ninety nine ==> 99
+export graph_0_to_99 = graph_0_to_9 | graph_10_to_19 | graph_20_to_99;
+
+# Example:
+#   six         ==> 006
+#   ninety nine ==> 099, always three digits.
+graph_1_to_999 = (
+  (
+    (graph_1_to_9 u.delete_space u.Delete["hundred"])
+    | (u.Insert["0"])
+  )
+  u.delete_space
+  (
+    (graph_10_to_19 | u.Insert["00"])
+    | (
+        (graph_ties | u.Insert["0"])
+        u.delete_space
+        (graph_1_to_9 | u.Insert["0"])
+      )
+  )
+);
+graph_thousands = (graph_1_to_999 u.delete_space u.Delete["thousand"]) | (u.Insert["000"] <0.1>);
+graph_million = (graph_1_to_999 u.delete_space u.Delete["million"]) | (u.Insert["000"] <0.1>);
+graph_billion = (graph_1_to_999 u.delete_space u.Delete["billion"]) | (u.Insert["000"] <0.1>);
+graph_trillion = (graph_1_to_999 u.delete_space u.Delete["trillion"]) | (u.Insert["000"] <0.1>);
+graph_quadrillion = (graph_1_to_999 u.delete_space u.Delete["quadrillion"]) | (u.Insert["000"] <0.1>);
+graph_quintillion = (graph_1_to_999 u.delete_space u.Delete["quintillion"]) | (u.Insert["000"] <0.1>);
+graph_sextillion = (graph_1_to_999 u.delete_space u.Delete["sextillion"]) | (u.Insert["000"] <0.1>);
+
+# Example:
+#   zero         ==> 0
+#   ninety nine  ==> 000000000000000000000099, always 24 digits.
+graph_all = graph_0 | (
+  graph_sextillion
+  u.delete_space graph_quintillion
+  u.delete_space graph_quadrillion
+  u.delete_space graph_trillion
+  u.delete_space graph_billion
+  u.delete_space graph_million
+  u.delete_space graph_thousands
+  u.delete_space graph_1_to_999
+);
+
+# Example:
+#   0                        ==> 0
+#   000000000000000000000099 ==> 99, remove leading-zeros.
+graph_remove_leading_zeros = (u.Delete[("0"*)] (b.kDigit - "0") (b.kDigit*)) | ("0");
+
+# Comment:
+#   remove "and" after xxxlion/hundred/thousand.
+#   detailed explaination about the usage of 'and' in Spoken Numbers:
+#   see: https://guinlist.wordpress.com/tag/and-in-numbers/ (in section-4)
+# DOC:
+#   CDRewrite: given a transducer and two context acceptors (and the alphabet machine),
+#   this will generate a new FST that performs the rewrite everywhere in the provided contexts.
+#       - the 2nd (left context), 3rd (right context) and 4th (sigma star) arguments are unweighted acceptors
+#       - The designated symbols [BOS] and [EOS] can be used to specify, respectively, the beginning and end
+#         of a string in regular expressions denoting the left and right context. Note that [BOS] and [EOS]
+#         cannot be used to denote beginning and end of string outside of CDRewrite.
+#   ref: https://www.openfst.org/twiki/bin/view/GRM/ThraxQuickTour
+graph_remove_and = CDRewrite[(" and":""), (graph_lions | "hundred"), (" "), b.kBytes*];
+
+# Comment:
+#   convert ordinal numbers to cardinal numbers
+# Example:
+#   sixth      ==> six
+#   sixteenth  ==> sixteen
+#   sixtieth   ==> sixty
+graph_ordinal_to_cardinal_digit = StringFile['data/ordinals/digit.tsv'];
+graph_ordinal_to_cardinal_teens = StringFile['data/ordinals/teen.tsv'];
+graph_ordinal_to_cardinal_ties = StringFile['data/ordinals/ties.tsv'];
+export graph_ordinal_to_cardinal = (
+  graph_ordinal_to_cardinal_digit
+  | graph_ordinal_to_cardinal_teens
+  | graph_ordinal_to_cardinal_ties
+  | ("hundredth":"hundred") | ("thousandth":"thousand")
+);
+
+# Comment:
+#   add suffix for ordinal numbers
+# Example:
+#   67 ==> 67th
+#   11 ==> 11th
+#   1  ==> 1st
+export graph_ordinal_suffix = (
+  (b.kDigit*)
+  (
+    ("0":"0th") | ("1":"1st")
+    | ("2":"2nd") | ("3":"3rd")
+    | ("4":"4th") | ("5":"5th")
+    | ("6":"6th") | ("7":"7th")
+    | ("8":"8th") | ("9":"9th")
+    | ("11":"11th") | ("12":"12th")
+    | ("13":"13th")
+  )
+);
+
+export graph_cardinal = graph_remove_and @ graph_all @ graph_remove_leading_zeros;
+export graph_ordinal = (b.kAlpha* b.kSpace{0, 1} graph_ordinal_to_cardinal) @ graph_cardinal @ graph_ordinal_suffix;
+
+# DOC:
+#   Optimize: optimizes the provided FST as described in https://www.openfst.org/twiki/bin/view/GRM/PyniniOptimizeDoc
+#   ref: https://www.openfst.org/twiki/bin/view/GRM/ThraxQuickTour
+export graph_int = Optimize[u.optional_negative_graph_en u.delete_space (graph_cardinal | graph_ordinal)];
+
+# Example:
+#   twenty six ==> int { content: "26" }
+export graph_int_structured = Optimize[
+  u.Insert["int { content: \""]
+  graph_int
+  u.Insert["\" }"]
+];

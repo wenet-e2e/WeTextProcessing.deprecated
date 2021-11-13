@@ -1,0 +1,28 @@
+import 'common/byte.grm' as b;
+import 'common/util.grm' as u;
+
+# Comment:
+#   This is an acceptor
+# Example:
+#   a.m. ==> a.m.
+graph_time_suffix = Project[StringFile['data/time/time_suffix.tsv'], 'output'];
+
+# Comment:
+#   This is an acceptor
+# Example:
+#   cst ==> cst
+graph_time_zone = Project[StringFile['data/time/time_zone.tsv'], 'input'];
+
+# Example:
+#   time { hour: "01" minute: ":10" suffix: "" zone: "" } ==> 01:10
+export graph_time_unstructured = Optimize[
+  u.Delete["time { hour: \""]
+  b.kDigit b.kDigit
+  u.Delete["\" minute: \""]
+  ":" b.kDigit b.kDigit
+  u.Delete["\" suffix: \""]
+  ((u.Insert[" "] graph_time_suffix) | ("" <0.1>))
+  u.Delete["\" zone: \""]
+  ((u.Insert[" "] graph_time_zone) | ("" <0.1>))
+  u.Delete["\" }"]
+];

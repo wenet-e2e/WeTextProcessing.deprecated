@@ -1,0 +1,120 @@
+import 'common/byte.grm' as b;
+import 'common/util.grm' as u;
+import 'taggers/int.grm' as int;
+
+# Example:
+#   a m ==> a.m.
+graph_time_suffix = StringFile['data/time/time_suffix.tsv'];
+
+# Example:
+#   centaral standard time ==> cst
+graph_time_zone = Invert[StringFile['data/time/time_zone.tsv']];
+
+# Example:
+#   six ==> 5
+graph_time_to = StringFile['data/time/time_to.tsv'];
+
+graph_hour = (
+  (u.Insert["0"] int.graph_0_to_9)
+  | int.graph_10_to_19    | ("twenty":"20")
+  | ("twenty one":"21")   | ("twenty two":"22")
+  | ("twenty three":"23") | ("twenty four":"24")
+);
+graph_ties_2_to_5 = (
+  ("twenty":"2")    | ("thirty":"3")
+  | ("forty":"4")   | ("fourty":"4")
+  | ("fifty":"5")
+);
+graph_20_to_59 = graph_ties_2_to_5 ((u.delete_space int.graph_1_to_9) | (u.Insert["0"] <0.1>));
+graph_minute_single = u.Insert["0"] int.graph_1_to_9;
+graph_minute_double = int.graph_10_to_19 | graph_20_to_59;
+graph_minute_verbose = ("half":"30") | ("quarter":"15");
+graph_oclock = u.Delete["o' clock"] | u.Delete["o clock"] | u.Delete["o'clock"] | u.Delete["oclock"];
+graph_minute = (
+  (graph_oclock u.Insert["00"])
+  | (u.Delete["o"] u.delete_space graph_minute_single)
+  | graph_minute_double
+);
+
+# Example:
+#   five o' clock      ==> hour: "5" minute: ":00" suffix: "" zone: ""
+#   two o eight        ==> hour: "2" minute: ":08" suffix: "" zone: ""
+#   two thiry five am  ==> hour: "2" minute: ":35" suffix: "a.m." zone: ""
+#   two pm c s t       ==> hour: "2" minute: ":00" suffix: "p.m." zone: "cst"
+graph_hm_structured = (
+  u.Insert["hour: \""]
+  graph_hour
+  u.Insert["\" minute: \":"]
+  u.delete_space graph_minute
+  u.Insert["\" suffix: \""]
+  (("":"" <0.1>) | (u.delete_space graph_time_suffix))
+  u.Insert["\" zone: \""]
+  (("":"" <0.1>) | (u.delete_space graph_time_zone))
+  u.Insert["\""]
+);
+
+# Example:
+#   ten past four      ==> minute: ":10" hour: "4" suffix: "" zone: ""
+#   quarter past four  ==> minute: ":15" hour: "4" suffix: "" zone: ""
+#   half past four     ==> minute: ":30" hour: "4" suffix: "" zone: ""
+graph_mh_structured = (
+  u.Insert["minute: \":"]
+  (
+    graph_minute_single
+    | graph_minute_double
+    | graph_minute_verbose
+  )
+  u.delete_space u.Delete["past"]
+  u.Insert["\" hour: \""]
+  u.delete_space graph_hour
+  u.Insert["\" suffix: \""]
+  (("":"" <0.1>) | (u.delete_space graph_time_suffix))
+  u.Insert["\" zone: \""]
+  (("":"" <0.1>) | (u.delete_space graph_time_zone))
+  u.Insert["\""]
+);
+
+# Example:
+#   quarter to six   ==> minute: ":45" hour: "5" suffix: "" zone: ""
+#   quarter till six ==> minute: ":45" hour: "5" suffix: "" zone: ""
+graph_quarter_structured = (
+  u.Insert["minute: \":"]
+  ("quarter":"45")
+  u.delete_space (u.Delete["to"] | u.Delete["till"])
+  u.Insert["\" hour: \""]
+  u.delete_space graph_time_to
+  u.Insert["\" suffix: \""]
+  (("":"" <0.1>) | (u.delete_space graph_time_suffix))
+  u.Insert["\" zone: \""]
+  (("":"" <0.1>) | (u.delete_space graph_time_zone))
+  u.Insert["\""]
+);
+
+# Example:
+#   two a m ==> hour: "2" minute: ":00" suffix: "a.m." zone: ""
+graph_h_structured = (
+  u.Insert["hour: \""]
+  graph_hour
+  u.Insert["\" minute: \":00\" suffix: \""]
+  u.delete_space graph_time_suffix
+  u.Insert["\" zone: \""]
+  (("":"" <0.1>) | (u.delete_space graph_time_zone))
+  u.Insert["\""]
+);
+
+# Example:
+#   five o' clock      ==> time { hour: "5" minute: ":00" suffix: "" zone: "" }
+#   two o eight        ==> time { hour: "2" minute: ":08" suffix: "" zone: "" }
+#   two thiry five am  ==> time { hour: "2" minute: ":35" suffix: "a.m." zone: "" }
+#   two pm c s t       ==> time { hour: "2" minute: ":00" suffix: "p.m." zone: "cst" }
+#   ten past four      ==> time { minute: ":10" hour: "4" suffix: "" zone: "" }
+#   quarter past four  ==> time { minute: ":15" hour: "4" suffix: "" zone: "" }
+#   half past four     ==> time { minute: ":30" hour: "4" suffix: "" zone: "" }
+#   quarter to six     ==> time { minute: ":45" hour: "5" suffix: "" zone: "" }
+#   quarter till six   ==> time { minute: ":45" hour: "5" suffix: "" zone: "" }
+#   two a m            ==> time { hour: "2" minute: ":00" suffix: "a.m." zone: "" }
+export graph_time_structured = Optimize[
+  u.Insert["time { "]
+  (graph_mh_structured | graph_hm_structured | graph_quarter_structured | graph_h_structured)
+  u.Insert[" }"]
+];

@@ -11,6 +11,7 @@ export optional_negative_graph = (
   ("":"")
   | ((("负":"-") | ("负的":"-")) <-1>)
 );
+export optional_negative_graph_en = ("minus":"-"){0, 1};
 
 func Insert[expr] {
   return ("" : expr);
@@ -20,24 +21,26 @@ func Delete[expr] {
   return (expr : "");
 }
 
+# not used
 func AddToken[fst, tokenname] {
   graph = (
-    ("":" " + tokenname) +
-    ("":" { ")           +
-    (fst)                +
+    ("":" " tokenname)
+    ("":" { ")
+    (fst)
     ("":" }")
   );
   return graph;
 }
 
+# not used
 func DelToken[fst, tokenname] {
   graph = (
-    (tokenname:"")          +
-    ((b.kSpace)* : "")      +
-    ("{":"")                +
-    ((b.kSpace)* : "")      +
-    (fst)                   +
-    ((b.kSpace)* : "")      +
+    (tokenname:"")
+    ((b.kSpace)* : "")
+    ("{":"")
+    ((b.kSpace)* : "")
+    (fst)
+    ((b.kSpace)* : "")
     ("}":"")
   );
   return (graph @ CDRewrite[("\u00A0":" "), "", "", b.kBytes*]);
