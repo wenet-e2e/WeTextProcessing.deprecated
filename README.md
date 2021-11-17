@@ -2,10 +2,10 @@
 
 TODO:
 
-- [ ] Inverse Text Normalization
+- [x] Inverse Text Normalization
   - [x] Chinese
-  - [ ] English
-  - [ ] Others
+  - [x] English
+  - [ ] Others (TBD)
 - [ ] Text Normalization
   - [ ] Chinese
   - [ ] English

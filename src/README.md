@@ -2,7 +2,7 @@
 
 ```sh
 # In Current Directory (wenet-text-processing/src)
-mkdir -p build && cd build && cmake .. && cmake --build .
+mkdir -p build && cd build && cmake -DTHRAX=ON .. && cmake --build .
 ```
 
 ```sh
