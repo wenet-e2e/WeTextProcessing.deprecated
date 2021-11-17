@@ -2,10 +2,13 @@ cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 
 project(wenet_text_processing VERSION 0.1)
 
+# This option makes it easy to use the wenet-text-processing runtime
+# as a sub-project in a CMake build, with another project as the
+# top-level project (i.e., wenet).
 option(THRAX "whether to build thrax" OFF)
 
 if(THRAX)
-  # include_directories() is called in the root CMakeLists.txt
+  # include_directories() is called in the root CMakeLists.txt if THRAX=OFF
   include_directories(
     ${PROJECT_SOURCE_DIR}
   )
@@ -63,6 +66,8 @@ endif(THRAX)
 add_library(text_processor STATIC
   text_processor/text_processor.cc
 )
+# We assume target openfst has been built in (top-level) CMake projects (i.e., wenet),
+# so it can be directly linked to text_processor.
 add_dependencies(text_processor openfst)
 target_link_libraries(text_processor PUBLIC fst dl)
 
