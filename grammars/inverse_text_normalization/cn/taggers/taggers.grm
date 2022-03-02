@@ -21,10 +21,10 @@ pre_processor = (
     @ electronic.ELECTRONIC
     @ time.TIME
     @ date.DATE
-    @ percentage.PERCENTAGE
     @ frac.FRACTION
-    @ float.FLOAT
+    @ percentage.PERCENTAGE
     @ measure.MEASURE
+    @ float.FLOAT
     @ whitelist.WHITELIST
   ]
 );
