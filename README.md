@@ -1,12 +1,3 @@
-# wenet-text-processing (WIP)
+# wenet-text-processing (deprecated)
 
-TODO:
-
-- [x] Inverse Text Normalization
-  - [x] Chinese
-  - [x] English
-  - [ ] Others (TBD)
-- [ ] Text Normalization
-  - [ ] Chinese
-  - [ ] English
-  - [ ] Others
+TODO: Merge this repo into https://github.com/wenet-e2e/text_normalization
