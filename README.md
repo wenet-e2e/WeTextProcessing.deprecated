@@ -1,3 +1,3 @@
 # wenet-text-processing (deprecated)
 
-TODO: Merge this repo into https://github.com/wenet-e2e/WeTextProcessing
+DONE: Merge this repo into https://github.com/wenet-e2e/WeTextProcessing
